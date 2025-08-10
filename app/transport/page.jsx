@@ -412,7 +412,7 @@ export default function TransportPage() {
           {filteredOptions.map((transport) => (
             <div
               key={transport.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-105"
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer transform"
               onClick={() => navigateToTransportDetail(transport)}
             >
               <div className="relative h-48">
