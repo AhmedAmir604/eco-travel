@@ -24,7 +24,7 @@ export default function TransportDetailPage() {
       if (parsed.places && parsed.places.length > 0) {
         setSelectedPlace(parsed.places[0])
       }
-      
+
       // Get all available images for this transport type
       const images = getTransportImages(parsed.type, parsed.places, 5)
       setTransportImages(images)
@@ -116,7 +116,7 @@ export default function TransportDetailPage() {
             <ArrowLeft size={20} className="mr-2" />
             Back to Transport Options
           </button>
-          
+
           <div className="flex items-center">
             <span className="text-3xl mr-3">{transport.icon}</span>
             <div>
@@ -141,12 +141,12 @@ export default function TransportDetailPage() {
                     fill
                     className="object-cover transition-opacity duration-300"
                   />
-                  
+
                   {/* Image Navigation */}
                   {transportImages.length > 1 && (
                     <>
                       <button
-                        onClick={() => setCurrentImageIndex((prev) => 
+                        onClick={() => setCurrentImageIndex((prev) =>
                           prev === 0 ? transportImages.length - 1 : prev - 1
                         )}
                         className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
@@ -154,34 +154,33 @@ export default function TransportDetailPage() {
                         ←
                       </button>
                       <button
-                        onClick={() => setCurrentImageIndex((prev) => 
+                        onClick={() => setCurrentImageIndex((prev) =>
                           prev === transportImages.length - 1 ? 0 : prev + 1
                         )}
                         className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
                       >
                         →
                       </button>
-                      
+
                       {/* Image Indicators */}
                       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
                         {transportImages.map((_, index) => (
                           <button
                             key={index}
                             onClick={() => setCurrentImageIndex(index)}
-                            className={`w-2 h-2 rounded-full ${
-                              index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
-                            }`}
+                            className={`w-2 h-2 rounded-full ${index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                              }`}
                           />
                         ))}
                       </div>
                     </>
                   )}
-                  
+
                   {/* Photo Source Indicator */}
                   <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs flex items-center">
                     <Camera size={12} className="mr-1" />
-                    {transportImages[currentImageIndex]?.source === 'google_places' ? 
-                      `📍 ${transportImages[currentImageIndex]?.placeName}` : 
+                    {transportImages[currentImageIndex]?.source === 'google_places' ?
+                      `📍 ${transportImages[currentImageIndex]?.placeName}` :
                       '📷 Stock Photo'
                     }
                   </div>
@@ -194,7 +193,7 @@ export default function TransportDetailPage() {
                   className="object-cover"
                 />
               )}
-              
+
               <div className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                 {'⭐'.repeat(transport.carbonRating)} Eco Rating
               </div>
@@ -217,9 +216,8 @@ export default function TransportDetailPage() {
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
-                      className={`relative flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
-                        index === currentImageIndex ? 'border-blue-500' : 'border-gray-200'
-                      }`}
+                      className={`relative flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-colors ${index === currentImageIndex ? 'border-blue-500' : 'border-gray-200'
+                        }`}
                     >
                       <Image
                         src={image.url}
@@ -252,8 +250,8 @@ export default function TransportDetailPage() {
                   <div className="text-sm text-gray-600">kg CO₂/km</div>
                 </div>
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">${transport.price}</div>
-                  <div className="text-sm text-gray-600">Estimated Cost</div>
+                  <div className="text-2xl font-bold text-purple-600">{transport.count || 'N/A'}</div>
+                  <div className="text-sm text-gray-600">Locations Found</div>
                 </div>
               </div>
             </div>
@@ -295,11 +293,10 @@ export default function TransportDetailPage() {
                   {transport.places.map((place, index) => (
                     <div
                       key={place.placeId || index}
-                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                        selectedPlace?.placeId === place.placeId
+                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${selectedPlace?.placeId === place.placeId
                           ? 'border-blue-500 bg-blue-50'
                           : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                        }`}
                       onClick={() => setSelectedPlace(place)}
                     >
                       <div className="flex items-start justify-between">
@@ -321,11 +318,10 @@ export default function TransportDetailPage() {
                               </div>
                             )}
                             {place.openNow !== undefined && (
-                              <span className={`text-xs px-2 py-1 rounded ${
-                                place.openNow
+                              <span className={`text-xs px-2 py-1 rounded ${place.openNow
                                   ? 'bg-green-100 text-green-800'
                                   : 'bg-red-100 text-red-800'
-                              }`}>
+                                }`}>
                                 {place.openNow ? 'Open Now' : 'Closed'}
                               </span>
                             )}
@@ -393,7 +389,7 @@ export default function TransportDetailPage() {
                       <p className="text-sm text-gray-600">{selectedPlace.vicinity}</p>
                     )}
                   </div>
-                  
+
                   {selectedPlace.rating !== 'N/A' && (
                     <div className="flex items-center">
                       <Star size={16} className="text-yellow-500 mr-2" />
@@ -406,14 +402,7 @@ export default function TransportDetailPage() {
                     </div>
                   )}
 
-                  {selectedPlace.priceLevel && (
-                    <div className="flex items-center">
-                      <span className="text-sm text-gray-600 mr-2">Price Level:</span>
-                      <span className="text-green-600">
-                        {'$'.repeat(selectedPlace.priceLevel)}
-                      </span>
-                    </div>
-                  )}
+
 
                   {selectedPlace.openNow !== undefined && (
                     <div className="flex items-center">

@@ -4,13 +4,29 @@ import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/protected-route'
 import { User, Mail, Calendar, Shield } from 'lucide-react'
+import { useToast } from '@/hooks/useToast'
 
 function ProfilePage() {
   const { user, signOut } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
+  const { toast } = useToast()
 
   const handleSignOut = async () => {
-    await signOut()
+    try {
+      await signOut()
+      toast.success('Successfully signed out!')
+    } catch (error) {
+      toast.error('Error signing out. Please try again.')
+    }
+  }
+
+  const handleEditProfile = () => {
+    if (isEditing) {
+      toast.info('Profile editing cancelled')
+    } else {
+      toast.info('Profile editing feature coming soon!')
+    }
+    setIsEditing(!isEditing)
   }
 
   return (
@@ -82,7 +98,7 @@ function ProfilePage() {
             <div className="mt-8 border-t border-gray-200 pt-8">
               <div className="flex justify-between">
                 <button
-                  onClick={() => setIsEditing(!isEditing)}
+                  onClick={handleEditProfile}
                   className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   {isEditing ? 'Cancel' : 'Edit Profile'}

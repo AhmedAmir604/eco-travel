@@ -3,14 +3,17 @@
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Search, MapPin, Loader2, Star, Wifi, Car, Utensils, Dumbbell, Waves } from "lucide-react"
+import { useToast } from "@/hooks/useToast"
+import ToastContainer from "@/components/ToastContainer"
 
 export default function AccommodationsPage() {
   const [accommodations, setAccommodations] = useState([])
   const [loading, setLoading] = useState(false)
   const [searchCity, setSearchCity] = useState('')
   const [searchRadius, setSearchRadius] = useState('25')
-  const [error, setError] = useState('')
+  const [error, setError] = useState();
   const [searchInfo, setSearchInfo] = useState(null)
+  const { toasts, toast, removeToast } = useToast()
 
   const searchAccommodations = async (city, radius = searchRadius) => {
     if (!city.trim()) return
@@ -34,8 +37,16 @@ export default function AccommodationsPage() {
         count: result.data.length,
         radius: radius
       })
+
+      // Show success toast
+      if (result.data.length > 0) {
+        toast.success(`Found ${result.data.length} eco-friendly accommodations in ${result.city}`)
+      } else {
+        toast.warning(`No accommodations found in ${city}. Try expanding your search radius.`)
+      }
     } catch (err) {
-      setError(err.message)
+      toast.error(err.message || 'Failed to search accommodations')
+      setError(err.message);
       setAccommodations([])
     } finally {
       setLoading(false)
@@ -56,6 +67,64 @@ export default function AccommodationsPage() {
       'Parking': <Car size={12} />
     }
     return icons[amenity] || <Star size={12} />
+  }
+
+  const getEcoPreference = (accommodation) => {
+    const ecoRating = accommodation.ecoRating || 3
+    const hasEcoFeatures = accommodation.features?.length || 0
+
+    // Calculate eco preference based on eco rating and features
+    if (ecoRating >= 4.5 && hasEcoFeatures >= 4) {
+      return {
+        level: 'excellent',
+        label: 'Most Eco-Friendly',
+        message: 'Outstanding sustainability practices - Perfect eco choice!',
+        bgColor: 'bg-green-600',
+        textColor: 'text-white',
+        borderColor: 'border-green-500',
+        icon: '🌟'
+      }
+    } else if (ecoRating >= 4 && hasEcoFeatures >= 3) {
+      return {
+        level: 'very-good',
+        label: 'Highly Eco-Friendly',
+        message: 'Excellent environmental initiatives - Great choice!',
+        bgColor: 'bg-emerald-500',
+        textColor: 'text-white',
+        borderColor: 'border-emerald-400',
+        icon: '✨'
+      }
+    } else if (ecoRating >= 3.5 && hasEcoFeatures >= 2) {
+      return {
+        level: 'good',
+        label: 'Eco-Friendly',
+        message: 'Good sustainability practices - Recommended!',
+        bgColor: 'bg-green-500',
+        textColor: 'text-white',
+        borderColor: 'border-green-400',
+        icon: '🌱'
+      }
+    } else if (ecoRating >= 3) {
+      return {
+        level: 'moderate',
+        label: 'Moderately Eco-Friendly',
+        message: 'Some eco-friendly features - Good option!',
+        bgColor: 'bg-yellow-500',
+        textColor: 'text-white',
+        borderColor: 'border-yellow-400',
+        icon: '⚡'
+      }
+    } else {
+      return {
+        level: 'limited',
+        label: 'Basic Eco-Friendliness',
+        message: 'Limited eco features - Consider other options.',
+        bgColor: 'bg-orange-500',
+        textColor: 'text-white',
+        borderColor: 'border-orange-400',
+        icon: '⚠️'
+      }
+    }
   }
 
   // Load default results for popular eco destinations
@@ -142,11 +211,7 @@ export default function AccommodationsPage() {
             </div>
           )}
 
-          {error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-sm text-red-600">{error}</p>
-            </div>
-          )}
+
         </div>
 
         {loading ? (
@@ -160,103 +225,124 @@ export default function AccommodationsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {accommodations.map((accommodation) => (
-              <div key={accommodation.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="md:flex">
-                  {/* Hotel Image */}
-                  <div className="md:w-1/2">
-                    <div className="relative h-64 md:h-full">
-                      <Image
-                        src={accommodation.image || "/placeholder.svg"}
-                        alt={accommodation.name}
-                        fill
-                        className="object-cover"
-                      />
-                      <div className="absolute top-3 left-3 bg-green-600 text-white px-3 py-1 text-sm font-medium rounded-full">
-                        {accommodation.ecoRating}/5 Eco Rating
-                      </div>
-                      {accommodation.rating && (
-                        <div className="absolute top-3 right-3 bg-white bg-opacity-90 text-gray-800 px-2 py-1 text-sm font-medium rounded-full flex items-center">
-                          <Star size={12} className="text-yellow-400 mr-1" />
-                          {accommodation.rating}/5
-                        </div>
-                      )}
+            {accommodations.map((accommodation) => {
+              const ecoPreference = getEcoPreference(accommodation)
+              return (
+                <div key={accommodation.id} className={`bg-white rounded-lg shadow-md overflow-hidden border-2 ${ecoPreference.borderColor} relative`}>
+                  {/* Eco Preference Banner */}
+                  <div className={`${ecoPreference.bgColor} ${ecoPreference.textColor} px-4 py-2 text-center text-sm font-medium`}>
+                    <div className="flex items-center justify-center gap-2">
+                      <span>{ecoPreference.icon}</span>
+                      <span>{ecoPreference.label}</span>
                     </div>
                   </div>
 
-                  {/* Hotel Details */}
-                  <div className="md:w-1/2 p-6">
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-xl font-bold text-gray-900">{accommodation.name}</h3>
-                      {accommodation.chainCode && (
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                          {accommodation.chainCode}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center text-sm text-gray-600 mb-3">
-                      <MapPin size={14} className="mr-1 flex-shrink-0" />
-                      <span>{accommodation.location}</span>
-                    </div>
-
-                    <p className="text-gray-700 text-sm mb-4 line-clamp-3">{accommodation.description}</p>
-
-                    {/* Eco Features */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-semibold text-gray-800 mb-2">Eco-Friendly Features</h4>
-                      <div className="flex flex-wrap gap-1">
-                        {accommodation.features.slice(0, 4).map((feature) => (
-                          <span key={feature} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                            {feature}
-                          </span>
-                        ))}
-                        {accommodation.features.length > 4 && (
-                          <span className="text-xs text-gray-500 px-2 py-1">
-                            +{accommodation.features.length - 4} more
-                          </span>
+                  <div className="md:flex">
+                    {/* Hotel Image */}
+                    <div className="md:w-1/2">
+                      <div className="relative h-64 md:h-full">
+                        <Image
+                          src={accommodation.image || "/placeholder.svg"}
+                          alt={accommodation.name}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute top-3 left-3 bg-green-600 text-white px-3 py-1 text-sm font-medium rounded-full">
+                          {accommodation.ecoRating}/5 Eco Rating
+                        </div>
+                        {accommodation.rating && (
+                          <div className="absolute top-3 right-3 bg-white bg-opacity-90 text-gray-800 px-2 py-1 text-sm font-medium rounded-full flex items-center">
+                            <Star size={12} className="text-yellow-400 mr-1" />
+                            {accommodation.rating}/5
+                          </div>
                         )}
                       </div>
                     </div>
 
-                    {/* Amenities */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-semibold text-gray-800 mb-2">Amenities</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {accommodation.amenities.map((amenity) => (
-                          <div key={amenity} className="flex items-center text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
-                            {getAmenityIcon(amenity)}
-                            <span className="ml-1">{amenity}</span>
-                          </div>
-                        ))}
+                    {/* Hotel Details */}
+                    <div className="md:w-1/2 p-6">
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="text-xl font-bold text-gray-900">{accommodation.name}</h3>
+                        {accommodation.chainCode && (
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                            {accommodation.chainCode}
+                          </span>
+                        )}
                       </div>
-                    </div>
 
-                    {/* Distance */}
-                    {accommodation.distance && (
+                      <div className="flex items-center text-sm text-gray-600 mb-3">
+                        <MapPin size={14} className="mr-1 flex-shrink-0" />
+                        <span>{accommodation.location}</span>
+                      </div>
+
+                      <p className="text-gray-700 text-sm mb-4 line-clamp-3">{accommodation.description}</p>
+
+                      {/* Eco Preference Message */}
+                      <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
+                        <div className="text-sm text-green-800 font-medium">
+                          {ecoPreference.icon} {ecoPreference.message}
+                        </div>
+                      </div>
+
+                      {/* Eco Features */}
                       <div className="mb-4">
-                        <span className="text-xs text-gray-500">
-                          📍 {accommodation.distance.value?.toFixed(1)} {accommodation.distance.unit} from search center
-                        </span>
+                        <h4 className="text-sm font-semibold text-gray-800 mb-2">Eco-Friendly Features</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {accommodation.features.slice(0, 4).map((feature) => (
+                            <span key={feature} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                              {feature}
+                            </span>
+                          ))}
+                          {accommodation.features.length > 4 && (
+                            <span className="text-xs text-gray-500 px-2 py-1">
+                              +{accommodation.features.length - 4} more
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    )}
 
-                    {/* Booking Section */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                      <div className="text-gray-500 text-sm">
-                        Contact for pricing
+                      {/* Amenities */}
+                      <div className="mb-4">
+                        <h4 className="text-sm font-semibold text-gray-800 mb-2">Amenities</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {accommodation.amenities.map((amenity) => (
+                            <div key={amenity} className="flex items-center text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
+                              {getAmenityIcon(amenity)}
+                              <span className="ml-1">{amenity}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <button
-                        onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(accommodation.name + ' ' + accommodation.location + ' booking')}`, '_blank')}
-                        className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
-                      >
-                        Book Now
-                      </button>
+
+                      {/* Distance */}
+                      {accommodation.distance && (
+                        <div className="mb-4">
+                          <span className="text-xs text-gray-500">
+                            📍 {accommodation.distance.value?.toFixed(1)} {accommodation.distance.unit} from search center
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Booking Section */}
+                      <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                        <div className="text-gray-500 text-sm">
+                          Contact for pricing
+                        </div>
+                        <button
+                          onClick={() => {
+                            window.open(`https://www.google.com/search?q=${encodeURIComponent(accommodation.name + ' ' + accommodation.location + ' booking')}`, '_blank')
+                            toast.info(`Opening booking page for ${accommodation.name}`)
+                          }}
+                          className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
+                        >
+                          Book Now
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
 
@@ -276,6 +362,9 @@ export default function AccommodationsPage() {
           </nav>
         </div>
       </div>
+
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </main>
   )
 }

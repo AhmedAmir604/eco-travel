@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from "next/link"
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/useToast'
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -13,11 +14,10 @@ export default function SignupPage() {
     confirmPassword: ''
   })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const { signUp } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
 
   const handleChange = (e) => {
     setFormData({
@@ -29,24 +29,22 @@ export default function SignupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
-    setMessage('')
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
+      toast.error('Passwords do not match')
       setLoading(false)
       return
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long')
+      toast.error('Password must be at least 6 characters long')
       setLoading(false)
       return
     }
 
     if (!agreedToTerms) {
-      setError('Please agree to the terms and conditions')
+      toast.warning('Please agree to the terms and conditions')
       setLoading(false)
       return
     }
@@ -59,16 +57,16 @@ export default function SignupPage() {
       })
       
       if (error) {
-        setError(error.message)
+        toast.error(error.message)
       } else {
-        setMessage('Account created successfully! Please check your email to verify your account.')
+        toast.success('Account created successfully! Please check your email to verify your account.')
         // Optionally redirect after a delay
         setTimeout(() => {
           router.push('/login')
         }, 3000)
       }
     } catch (err) {
-      setError('An unexpected error occurred')
+      toast.error('An unexpected error occurred')
     } finally {
       setLoading(false)
     }
@@ -115,18 +113,6 @@ export default function SignupPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {error && (
-            <div className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg">
-              {error}
-            </div>
-          )}
-          
-          {message && (
-            <div className="mb-4 p-4 text-sm text-green-700 bg-green-100 rounded-lg">
-              {message}
-            </div>
-          )}
-
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">

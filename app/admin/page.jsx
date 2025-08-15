@@ -4,9 +4,23 @@ import { useState } from "react"
 import { Users, Map, Home, Truck, Calendar, BarChart, Settings, PlusCircle, Search, Edit, Trash } from "lucide-react"
 import { dummyDestinations } from "@/data/dummy-data"
 import ProtectedRoute from "@/components/protected-route"
+import { useToast } from "@/hooks/useToast"
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("destinations")
+  const { toast } = useToast()
+
+  const handleAddDestination = () => {
+    toast.info('Add destination feature coming soon!')
+  }
+
+  const handleEditDestination = (destinationName) => {
+    toast.info(`Edit ${destinationName} feature coming soon!`)
+  }
+
+  const handleDeleteDestination = (destinationName) => {
+    toast.warning(`Delete ${destinationName} feature coming soon!`)
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -90,7 +104,10 @@ function AdminDashboard() {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Manage Destinations</h1>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center">
+              <button 
+                onClick={handleAddDestination}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
+              >
                 <PlusCircle size={18} className="mr-2" />
                 Add Destination
               </button>
@@ -214,10 +231,16 @@ function AdminDashboard() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button className="text-indigo-600 hover:text-indigo-900 mr-3">
+                          <button 
+                            onClick={() => handleEditDestination(destination.name)}
+                            className="text-indigo-600 hover:text-indigo-900 mr-3"
+                          >
                             <Edit size={16} />
                           </button>
-                          <button className="text-red-600 hover:text-red-900">
+                          <button 
+                            onClick={() => handleDeleteDestination(destination.name)}
+                            className="text-red-600 hover:text-red-900"
+                          >
                             <Trash size={16} />
                           </button>
                         </td>

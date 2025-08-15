@@ -15,7 +15,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Hotel ID is required' }, { status: 400 });
     }
 
-    console.log(`Fetching details for hotel: ${hotelId}`);
+    // console.log(`Fetching details for hotel: ${hotelId}`);
 
     // Get hotel offers from Amadeus API
     const hotelDetails = await amadeusAPI.getHotelOffers(hotelId, checkIn, checkOut, parseInt(adults));

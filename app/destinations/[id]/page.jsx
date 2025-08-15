@@ -106,7 +106,8 @@ export default function DestinationDetailPage({ params }) {
                     <h4 className="font-semibold">Eco-Friendly Practices</h4>
                   </div>
                   <ul className="text-sm text-gray-700 space-y-1">
-                    <li>• Use public transportation or bike rentals</li>
+                    {/* <li>• Use public transportation or bike rentals</li> */}
+                    <li>• Use public transportation </li>
                     <li>• Support local businesses and artisans</li>
                     <li>• Participate in beach or trail clean-ups</li>
                     <li>• Use reef-safe sunscreen if visiting marine areas</li>

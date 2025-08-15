@@ -4,15 +4,22 @@ import { useState } from "react"
 import Link from "next/link"
 import { Menu, X, User, LogOut } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import { useToast } from "@/hooks/useToast"
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const { user, signOut, loading } = useAuth()
+  const { toast } = useToast()
 
   const handleSignOut = async () => {
-    await signOut()
-    setIsUserMenuOpen(false)
+    try {
+      await signOut()
+      setIsUserMenuOpen(false)
+      toast.success('Successfully signed out!')
+    } catch (error) {
+      toast.error('Error signing out. Please try again.')
+    }
   }
 
   return (

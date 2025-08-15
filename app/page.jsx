@@ -1,3 +1,5 @@
+'use client'
+
 import Link from "next/link"
 import { Search } from "lucide-react"
 import HeroSection from "../components/hero-section"
@@ -51,13 +53,28 @@ export default function Home() {
               </select>
             </div>
             <div className="flex items-end">
-              <Link
-                href="/search"
+              <button
+                onClick={() => {
+                  const destination = document.getElementById('destination').value
+                  const travelers = document.getElementById('travelers').value
+                  const dates = document.getElementById('dates').value
+                  
+                  if (destination.trim()) {
+                    const params = new URLSearchParams({
+                      destination: destination.trim(),
+                      travelers: travelers,
+                      dates: dates
+                    })
+                    window.location.href = `/search?${params.toString()}`
+                  } else {
+                    window.location.href = '/search'
+                  }
+                }}
                 className="w-full md:w-auto px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
               >
                 <Search size={18} />
                 <span>Search</span>
-              </Link>
+              </button>
             </div>
           </div>
         </div>

@@ -4,33 +4,31 @@ import { useState } from 'react'
 import Link from "next/link"
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/useToast'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
   const { signIn } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
-    setMessage('')
 
     try {
       const { error } = await signIn(email, password)
       
       if (error) {
-        setError(error.message)
+        toast.error(error.message)
       } else {
-        setMessage('Login successful! Redirecting...')
+        toast.success('Login successful! Redirecting...')
         router.push('/')
       }
     } catch (err) {
-      setError('An unexpected error occurred')
+      toast.error('An unexpected error occurred')
     } finally {
       setLoading(false)
     }
@@ -38,24 +36,23 @@ export default function LoginPage() {
 
   const handleForgotPassword = async () => {
     if (!email) {
-      setError('Please enter your email address first')
+      toast.warning('Please enter your email address first')
       return
     }
 
     setLoading(true)
-    setError('')
     
     try {
       const { resetPassword } = useAuth()
       const { error } = await resetPassword(email)
       
       if (error) {
-        setError(error.message)
+        toast.error(error.message)
       } else {
-        setMessage('Password reset email sent! Check your inbox.')
+        toast.success('Password reset email sent! Check your inbox.')
       }
     } catch (err) {
-      setError('Failed to send reset email')
+      toast.error('Failed to send reset email')
     } finally {
       setLoading(false)
     }
@@ -102,18 +99,6 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {error && (
-            <div className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg">
-              {error}
-            </div>
-          )}
-          
-          {message && (
-            <div className="mb-4 p-4 text-sm text-green-700 bg-green-100 rounded-lg">
-              {message}
-            </div>
-          )}
-
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">

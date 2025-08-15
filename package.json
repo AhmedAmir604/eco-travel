@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-toast": "^1.2.14",
     "@supabase/ssr": "^0.0.10",
     "@supabase/supabase-js": "^2.53.0",
     "lucide-react": "^0.294.0",

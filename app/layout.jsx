@@ -3,6 +3,8 @@ import "./globals.css"
 import Navbar from "../components/navbar"
 import Footer from "../components/footer"
 import { AuthProvider } from "../contexts/AuthContext"
+import { ToastProvider } from "../contexts/ToastContext"
+import ToastContainer from "../components/ToastContainer"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -17,9 +19,12 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${inter.className} bg-gray-50`}>
         <AuthProvider>
-          <Navbar />
-          {children}
-          <Footer />
+          <ToastProvider>
+            <Navbar />
+            {children}
+            <Footer />
+            <ToastContainer />
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>
