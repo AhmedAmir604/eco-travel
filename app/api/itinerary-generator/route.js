@@ -19,7 +19,7 @@ export async function POST(request) {
 
     // Generate unique ID for the itinerary
     const itineraryId = `itinerary-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
-    console.log('Generated new itinerary with ID:', itineraryId)
+    // console.log('Generated new itinerary with ID:', itineraryId)
 
     // Prepare the itinerary with ID
     const finalItinerary = {
@@ -29,7 +29,7 @@ export async function POST(request) {
       createdAt: new Date().toISOString(),
       preferences
     }
-    console.log("helo", finalItinerary);
+    // console.log("helo", finalItinerary);
     return Response.json({
       success: true,
       data: finalItinerary,

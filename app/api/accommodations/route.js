@@ -44,7 +44,7 @@ export async function GET(request) {
       });
     }
 
-    const finalHotels = hotels.slice(0, 10); // Limit to 10 results
+    const finalHotels = hotels.slice(0, 20); // Limit to 20 results for pagination
 
     return NextResponse.json({
       success: true,

@@ -6,10 +6,13 @@ import { useRouter } from "next/navigation"
 import { Search, MapPin, Leaf, Star, ExternalLink, Filter, Globe } from "lucide-react"
 import { getTransportImage, getTransportImageAlt } from "@/lib/transport-images"
 import { useToast } from "@/hooks/useToast"
+import ToastContainer from "@/components/ToastContainer"
+import CitySearchInput from "@/components/CitySearchInput"
+import Pagination from "@/components/Pagination"
 
 export default function TransportPage() {
   const router = useRouter()
-  const { toast } = useToast()
+  const { toasts, toast, removeToast } = useToast()
   const [transportOptions, setTransportOptions] = useState([])
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -18,6 +21,9 @@ export default function TransportPage() {
   const [location, setLocation] = useState("")
   const [summaryData, setSummaryData] = useState(null)
   const [showFilters, setShowFilters] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [resultsPerPage] = useState(4)
+  const [paginationLoading, setPaginationLoading] = useState(false)
 
   const [debounceTimer, setDebounceTimer] = useState(null)
 
@@ -46,6 +52,7 @@ export default function TransportPage() {
   const performSearch = async () => {
     setLoading(true)
     setSummaryData(null)
+    resetPagination() // Reset to first page on new search
 
     try {
       const requestType = selectedType === 'summary' ? 'summary' :
@@ -235,6 +242,7 @@ export default function TransportPage() {
     }
   }
 
+  // Filter transport options
   const filteredOptions = transportOptions.filter(transport => {
     const matchesSearch = transport.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       transport.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -243,6 +251,26 @@ export default function TransportPage() {
 
     return matchesSearch && matchesDestination && matchesType
   })
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOptions.length / resultsPerPage)
+  const startIndex = (currentPage - 1) * resultsPerPage
+  const endIndex = startIndex + resultsPerPage
+  const currentTransportOptions = filteredOptions.slice(startIndex, endIndex)
+
+  const handlePageChange = (page) => {
+    setPaginationLoading(true)
+    setCurrentPage(page)
+    // Scroll to transport results section
+    window.scrollTo({ top: 800, behavior: 'smooth' })
+    // Remove loading state after scroll animation
+    setTimeout(() => setPaginationLoading(false), 300)
+  }
+
+  // Reset pagination when transport options change
+  const resetPagination = () => {
+    setCurrentPage(1)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
@@ -278,13 +306,48 @@ export default function TransportPage() {
             {/* Main Search */}
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1 relative">
-                <MapPin size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-emerald-600" />
-                <input
-                  type="text"
-                  placeholder="Enter location (e.g., Manhattan, NYC)"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-white/90 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-gray-800 placeholder-gray-500"
+                <CitySearchInput
+                  placeholder="Enter location (e.g., Manhattan, NYC, London, Paris)..."
+                  initialValue={location}
+                  onCitySelect={(city) => {
+                    // Extract the best location name for transport search
+                    const cityName = city.name || city.displayName?.split(',')[0] || '';
+                    const locationString = city.displayName || city.name || '';
+                    
+                    setLocation(locationString);
+                    
+                    // Show success notification
+                    toast.success(`Selected: ${city.displayName}`);
+                    
+                    // Auto-discover transport when city is selected
+                    if (locationString) {
+                      // Clear any existing timer
+                      if (debounceTimer) {
+                        clearTimeout(debounceTimer);
+                        setDebounceTimer(null);
+                      }
+                      // Trigger immediate search
+                      setTimeout(() => {
+                        discoverAreaTransport(true);
+                      }, 100); // Small delay to ensure UI updates
+                    }
+                  }}
+                  onInputChange={(value) => {
+                    setLocation(value);
+                    // Only update the location state, don't trigger search while typing
+                  }}
+                  onKeyDown={(e) => {
+                    // Allow manual search when Enter is pressed
+                    if (e.key === 'Enter' && location && location.length >= 2) {
+                      e.preventDefault();
+                      discoverAreaTransport(true);
+                    }
+                  }}
+                  disabled={loading}
+                  showPopularCities={true}
+                  className="w-full"
+                  inputClassName="w-full pl-12 pr-12 py-4 bg-white/90 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-gray-800 placeholder-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  dropdownClassName="absolute z-50 w-full mt-1 bg-white/95 backdrop-blur-sm border border-emerald-200 rounded-xl shadow-xl max-h-60 overflow-y-auto"
                 />
               </div>
               <button
@@ -342,7 +405,6 @@ export default function TransportPage() {
                       <option value="">All Transport Types</option>
                       <option value="discover">🔍 Discover All</option>
                       <option value="summary">📊 Area Summary</option>
-                      {/* <option value="bicycle_store">🚴 Bike Rentals</option> */}
                       <option value="transit_station">🚌 Public Transit</option>
                       <option value="train_station">🚂 Train Stations</option>
                       <option value="electric_vehicle_charging_station">⚡ EV Charging</option>
@@ -440,103 +502,128 @@ export default function TransportPage() {
 
         {/* Transport Options Grid */}
         {filteredOptions.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredOptions.map((transport) => {
-              const ecoPreference = getEcoPreference(transport)
-              return (
-                <div
-                  key={transport.id}
-                  onClick={() => navigateToTransportDetail(transport)}
-                  className={`group bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 ${ecoPreference.borderColor} overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer relative`}
-                >
-                  {/* Eco Preference Banner */}
-                  <div className={`${ecoPreference.bgColor} ${ecoPreference.textColor} px-4 py-2 text-center text-sm font-medium`}>
-                    <div className="flex items-center justify-center gap-2">
-                      <span>{ecoPreference.icon}</span>
-                      <span>{ecoPreference.label}</span>
-                    </div>
-                  </div>
-
-                  <div className="relative h-48 overflow-hidden">
-                    <Image
-                      src={transport.image || getTransportImage(transport.type, 'small')}
-                      alt={getTransportImageAlt(transport.type)}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-300"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                    
-                    {/* Overlay badges */}
-                    <div className="absolute top-4 left-4">
-                      <div className="flex items-center gap-1 px-3 py-1 bg-emerald-600 text-white rounded-full text-xs font-medium">
-                        {[...Array(transport.carbonRating)].map((_, i) => (
-                          <Star key={i} size={12} className="fill-current" />
-                        ))}
+          <div className={`transition-opacity duration-300 ${paginationLoading ? 'opacity-50' : 'opacity-100'}`}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">
+                Transport Options
+                <span className="text-lg font-normal text-gray-600 ml-2">
+                  ({filteredOptions.length} found)
+                </span>
+              </h2>
+              <div className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              {currentTransportOptions.map((transport) => {
+                const ecoPreference = getEcoPreference(transport)
+                return (
+                  <div
+                    key={transport.id}
+                    onClick={() => navigateToTransportDetail(transport)}
+                    className={`group bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 ${ecoPreference.borderColor} overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer relative`}
+                  >
+                    {/* Eco Preference Banner */}
+                    <div className={`${ecoPreference.bgColor} ${ecoPreference.textColor} px-4 py-2 text-center text-sm font-medium`}>
+                      <div className="flex items-center justify-center gap-2">
+                        <span>{ecoPreference.icon}</span>
+                        <span>{ecoPreference.label}</span>
                       </div>
                     </div>
-                    
-                    {transport.carbonEmission === 0 && (
-                      <div className="absolute top-4 right-4 px-3 py-1 bg-green-600 text-white rounded-full text-xs font-medium">
-                        🌱 Zero Emissions
-                      </div>
-                    )}
-                    
-                    <div className="absolute bottom-4 right-4 p-2 bg-black/50 text-white rounded-full">
-                      <ExternalLink size={16} />
-                    </div>
-                  </div>
 
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-3xl">{transport.icon || getTransportIcon(transport.type)}</span>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800">{transport.name}</h3>
-                      <p className="text-sm text-gray-500 capitalize">
-                        {transport.type.replace('_', ' ')}
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{transport.description}</p>
-
-                  {/* Eco Preference Message */}
-                  <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
-                    <div className="text-sm text-green-800 font-medium mb-1">
-                      {ecoPreference.icon} {ecoPreference.message}
-                    </div>
-                  </div>
-
-                  {transport.areaTransport && (
-                    <div className="mb-4 p-3 bg-emerald-50 rounded-lg">
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="flex items-center gap-1 text-emerald-700">
-                          <MapPin size={14} />
-                          {transport.availability}
-                        </span>
-                        <span className="font-medium text-emerald-800">
-                          {typeof transport.count === 'number' ? `${transport.count} found` : transport.count}
-                        </span>
+                    <div className="relative h-48 overflow-hidden">
+                      <Image
+                        src={transport.image || getTransportImage(transport.type, 'small')}
+                        alt={getTransportImageAlt(transport.type)}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                      
+                      {/* Overlay badges */}
+                      <div className="absolute top-4 left-4">
+                        <div className="flex items-center gap-1 px-3 py-1 bg-emerald-600 text-white rounded-full text-xs font-medium">
+                          {[...Array(transport.carbonRating)].map((_, i) => (
+                            <Star key={i} size={12} className="fill-current" />
+                          ))}
+                        </div>
                       </div>
                       
-                      {transport.hasRealData && (
-                        <div className="text-xs text-emerald-600 font-medium">
-                          ✅ Real-time data
+                      {transport.carbonEmission === 0 && (
+                        <div className="absolute top-4 right-4 px-3 py-1 bg-green-600 text-white rounded-full text-xs font-medium">
+                          🌱 Zero Emissions
                         </div>
                       )}
+                      
+                      <div className="absolute bottom-4 right-4 p-2 bg-black/50 text-white rounded-full">
+                        <ExternalLink size={16} />
+                      </div>
                     </div>
-                  )}
 
-                  <div className="flex items-center justify-between">
-                    <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                      {transport.carbonEmission} kg CO₂/km
-                    </div>
-                    <div className="text-emerald-600 hover:text-emerald-700 transition-colors">
-                      <span className="text-sm font-medium">View Details →</span>
+                    <div className="p-6">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-3xl">{transport.icon || getTransportIcon(transport.type)}</span>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-800">{transport.name}</h3>
+                          <p className="text-sm text-gray-500 capitalize">
+                            {transport.type.replace('_', ' ')}
+                          </p>
+                        </div>
+                      </div>
+
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">{transport.description}</p>
+
+                      {/* Eco Preference Message */}
+                      <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
+                        <div className="text-sm text-green-800 font-medium mb-1">
+                          {ecoPreference.icon} {ecoPreference.message}
+                        </div>
+                      </div>
+
+                      {transport.areaTransport && (
+                        <div className="mb-4 p-3 bg-emerald-50 rounded-lg">
+                          <div className="flex items-center justify-between text-sm mb-2">
+                            <span className="flex items-center gap-1 text-emerald-700">
+                              <MapPin size={14} />
+                              {transport.availability}
+                            </span>
+                            <span className="font-medium text-emerald-800">
+                              {typeof transport.count === 'number' ? `${transport.count} found` : transport.count}
+                            </span>
+                          </div>
+                          
+                          {transport.hasRealData && (
+                            <div className="text-xs text-emerald-600 font-medium">
+                              ✅ Real-time data
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                          {transport.carbonEmission} kg CO₂/km
+                        </div>
+                        <div className="text-emerald-600 hover:text-emerald-700 transition-colors">
+                          <span className="text-sm font-medium">View Details →</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )})}
+                )
+              })}
+            </div>
+            
+            {/* Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredOptions.length}
+              itemsPerPage={resultsPerPage}
+              onPageChange={handlePageChange}
+              className="mt-8"
+            />
           </div>
         )}
 
@@ -562,6 +649,9 @@ export default function TransportPage() {
           </div>
         )}
       </div>
+      
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </div>
   )
 }

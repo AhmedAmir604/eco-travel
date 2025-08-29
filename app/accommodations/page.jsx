@@ -3,8 +3,11 @@
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Search, MapPin, Loader2, Star, Wifi, Car, Utensils, Dumbbell, Waves } from "lucide-react"
-import { useToast } from "@/hooks/useToast"
-import ToastContainer from "@/components/ToastContainer"
+import { useToast } from "@/contexts/ToastContext"
+import AccommodationLikeButton from "@/components/AccommodationLikeButton"
+// ToastContainer is now global in layout
+import CitySearchInput from "@/components/CitySearchInput"
+import Pagination from "@/components/Pagination"
 
 export default function AccommodationsPage() {
   const [accommodations, setAccommodations] = useState([])
@@ -13,13 +16,17 @@ export default function AccommodationsPage() {
   const [searchRadius, setSearchRadius] = useState('25')
   const [error, setError] = useState();
   const [searchInfo, setSearchInfo] = useState(null)
-  const { toasts, toast, removeToast } = useToast()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [resultsPerPage] = useState(4)
+  const [paginationLoading, setPaginationLoading] = useState(false)
+  const { toast } = useToast()
 
   const searchAccommodations = async (city, radius = searchRadius) => {
     if (!city.trim()) return
 
     setLoading(true)
     setError('')
+    setCurrentPage(1) // Reset to first page on new search
 
     try {
       const response = await fetch(`/api/accommodations?city=${encodeURIComponent(city)}&radius=${radius}`)
@@ -127,6 +134,21 @@ export default function AccommodationsPage() {
     }
   }
 
+  // Pagination logic
+  const totalPages = Math.ceil(accommodations.length / resultsPerPage)
+  const startIndex = (currentPage - 1) * resultsPerPage
+  const endIndex = startIndex + resultsPerPage
+  const currentAccommodations = accommodations.slice(startIndex, endIndex)
+
+  const handlePageChange = (page) => {
+    setPaginationLoading(true)
+    setCurrentPage(page)
+    // Scroll to top of results
+    window.scrollTo({ top: 400, behavior: 'smooth' })
+    // Remove loading state after scroll animation
+    setTimeout(() => setPaginationLoading(false), 300)
+  }
+
   // Load default results for popular eco destinations
   useEffect(() => {
     searchAccommodations('Paris')
@@ -142,38 +164,33 @@ export default function AccommodationsPage() {
           </p>
 
           <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                placeholder="Enter a city name (e.g., Paris, London, New York, Tokyo)..."
-                value={searchCity}
-                onChange={(e) => setSearchCity(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            <div className="flex-1">
+              <CitySearchInput
+                placeholder="Search for a city (e.g., Paris, London) - Press Enter to search or select from suggestions"
+                initialValue={searchCity}
+                onCitySelect={(city) => {
+                  const cityName = city.name || city.displayName?.split(',')[0] || '';
+                  setSearchCity(cityName);
+                  // Auto-search when city is selected
+                  if (cityName) {
+                    searchAccommodations(cityName, searchRadius);
+                  }
+                }}
+                onInputChange={(value) => {
+                  setSearchCity(value);
+                }}
+                onKeyDown={(e) => {
+                  // Allow manual search when Enter is pressed
+                  if (e.key === 'Enter' && searchCity && searchCity.length >= 2) {
+                    e.preventDefault();
+                    searchAccommodations(searchCity, searchRadius);
+                  }
+                }}
+                disabled={loading}
+                showPopularCities={true}
+                className="w-full"
               />
-              <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
-            <select
-              value={searchCity}
-              onChange={(e) => {
-                setSearchCity(e.target.value)
-                if (e.target.value) searchAccommodations(e.target.value, searchRadius)
-              }}
-              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="">Popular Cities</option>
-              <option value="Paris">Paris</option>
-              <option value="London">London</option>
-              <option value="New York">New York</option>
-              <option value="Tokyo">Tokyo</option>
-              <option value="Dubai">Dubai</option>
-              <option value="Singapore">Singapore</option>
-              <option value="Barcelona">Barcelona</option>
-              <option value="Amsterdam">Amsterdam</option>
-              <option value="Rome">Rome</option>
-              <option value="Berlin">Berlin</option>
-              <option value="Madrid">Madrid</option>
-              <option value="Zurich">Zurich</option>
-            </select>
             <select
               value={searchRadius}
               onChange={(e) => setSearchRadius(e.target.value)}
@@ -202,10 +219,15 @@ export default function AccommodationsPage() {
           {searchInfo && (
             <div className="mt-4 p-3 bg-green-50 rounded-md">
               <p className="text-sm text-green-700">
-                Found {searchInfo.count} eco-friendly accommodations in <strong>{searchInfo.city}</strong>
+                Found <strong>{searchInfo.count}</strong> eco-friendly accommodations in <strong>{searchInfo.city}</strong>
                 <span className="text-gray-600"> (within {searchInfo.radius} km radius)</span>
                 {searchInfo.checkIn && (
                   <span> for {new Date(searchInfo.checkIn).toLocaleDateString()} - {new Date(searchInfo.checkOut).toLocaleDateString()}</span>
+                )}
+                {searchInfo.count > resultsPerPage && (
+                  <span className="block mt-1 text-xs text-gray-600">
+                    Showing {resultsPerPage} results per page
+                  </span>
                 )}
               </p>
             </div>
@@ -219,13 +241,14 @@ export default function AccommodationsPage() {
             <Loader2 size={32} className="animate-spin text-green-600" />
             <span className="ml-2 text-gray-600">Finding eco-friendly accommodations...</span>
           </div>
-        ) : accommodations.length === 0 && !error ? (
+        ) : (accommodations.length === 0 && !error) ? (
           <div className="text-center py-12">
             <p className="text-gray-500">Enter a city or country name to search for eco-friendly accommodations.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {accommodations.map((accommodation) => {
+          <div className={`transition-opacity duration-300 ${paginationLoading ? 'opacity-50' : 'opacity-100'}`}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {currentAccommodations.map((accommodation) => {
               const ecoPreference = getEcoPreference(accommodation)
               return (
                 <div key={accommodation.id} className={`bg-white rounded-lg shadow-md overflow-hidden border-2 ${ecoPreference.borderColor} relative`}>
@@ -250,12 +273,39 @@ export default function AccommodationsPage() {
                         <div className="absolute top-3 left-3 bg-green-600 text-white px-3 py-1 text-sm font-medium rounded-full">
                           {accommodation.ecoRating}/5 Eco Rating
                         </div>
-                        {accommodation.rating && (
+                        
+                        {/* Like Button */}
+                        <div className="absolute top-3 right-3 z-10">
+                          <AccommodationLikeButton 
+                            accommodation={{
+                              id: accommodation.id,
+                              name: accommodation.name,
+                              location: accommodation.location,
+                              image: accommodation.image,
+                              price: accommodation.pricePerNight ? {
+                                amount: accommodation.pricePerNight,
+                                currency: accommodation.currency || 'USD',
+                                per: 'night'
+                              } : null,
+                              rating: accommodation.rating,
+                              ecoRating: accommodation.ecoRating,
+                              description: accommodation.description,
+                              chainCode: accommodation.chainCode,
+                              features: accommodation.features,
+                              amenities: accommodation.amenities,
+                              coordinates: accommodation.coordinates,
+                              source: 'amadeus'
+                            }}
+                            size="md"
+                            variant="default"
+                          />
+                        </div>
+                        {/* {accommodation.rating && (
                           <div className="absolute top-3 right-3 bg-white bg-opacity-90 text-gray-800 px-2 py-1 text-sm font-medium rounded-full flex items-center">
                             <Star size={12} className="text-yellow-400 mr-1" />
                             {accommodation.rating}/5
                           </div>
-                        )}
+                        )} */}
                       </div>
                     </div>
 
@@ -344,27 +394,23 @@ export default function AccommodationsPage() {
               )
             })}
           </div>
+        </div>
         )}
 
-        <div className="mt-8 flex justify-center">
-          <nav className="flex items-center">
-            <button className="px-3 py-1 border border-gray-300 rounded-l-md text-gray-500 hover:bg-gray-50">
-              Previous
-            </button>
-            <button className="px-3 py-1 border-t border-b border-gray-300 bg-green-50 text-green-600 font-medium">
-              1
-            </button>
-            <button className="px-3 py-1 border-t border-b border-gray-300 text-gray-500 hover:bg-gray-50">2</button>
-            <button className="px-3 py-1 border-t border-b border-gray-300 text-gray-500 hover:bg-gray-50">3</button>
-            <button className="px-3 py-1 border border-gray-300 rounded-r-md text-gray-500 hover:bg-gray-50">
-              Next
-            </button>
-          </nav>
-        </div>
+        {/* Pagination */}
+        {accommodations.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={accommodations.length}
+            itemsPerPage={resultsPerPage}
+            onPageChange={handlePageChange}
+            className="mt-8"
+          />
+        )}
       </div>
 
-      {/* Toast Container */}
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      {/* Toast Container is now global in layout */}
     </main>
   )
 }

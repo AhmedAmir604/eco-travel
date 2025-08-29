@@ -55,12 +55,10 @@ export default function ItinerariesPage() {
       
       const result = await response.json()
 
-      console.log("result is here ", result);
+      // console.log("result is here ", result);
 
       if (result.success) {
-        console.log('Generated itinerary:', result.data)
-        console.log('Generated itinerary ID:', result.data.id)
-        console.log('Generated itinerary title:', result.data.title)
+
         setGeneratedItinerary(result.data)
         toast.success('Eco-friendly itinerary generated successfully!')
       } else {

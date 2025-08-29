@@ -49,7 +49,6 @@ export default function ItineraryPage() {
 
       if (storedData) {
         const itineraryData = JSON.parse(storedData)
-        console.log('Loaded itinerary data from sessionStorage:', itineraryData)
 
         // Transform the data to match UI expectations
         const transformedItinerary = {
@@ -256,7 +255,6 @@ export default function ItineraryPage() {
 
       // Create complete route through all activities
       if (activitiesWithCoords.length > 1 && directionsServiceInstance && directionsRendererInstance) {
-        console.log(`Creating route for ${activitiesWithCoords.length} activities on day ${dayNumber}`)
 
         // Create waypoints for all intermediate activities
         const waypoints = []
@@ -286,10 +284,8 @@ export default function ItineraryPage() {
           avoidTolls: true
         }
 
-        console.log('Route request:', routeRequest)
 
         directionsServiceInstance.route(routeRequest, (result, status) => {
-          console.log('Directions result:', status, result)
           if (status === 'OK') {
             directionsRendererInstance.setDirections(result)
 
@@ -298,7 +294,6 @@ export default function ItineraryPage() {
             const totalDistance = route.legs.reduce((sum, leg) => sum + leg.distance.value, 0)
             const totalDuration = route.legs.reduce((sum, leg) => sum + leg.duration.value, 0)
 
-            console.log(`Route created: ${(totalDistance / 1000).toFixed(1)}km, ${Math.round(totalDuration / 60)} minutes`)
 
             // Add route info to the map
             const routeInfoDiv = document.getElementById('route-info')

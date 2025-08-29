@@ -1,13 +1,53 @@
 'use client'
 
 import Link from "next/link"
-import { Search } from "lucide-react"
+import { Search, Calendar } from "lucide-react"
+import { useState } from "react"
+import DatePicker from "react-datepicker"
+import "react-datepicker/dist/react-datepicker.css"
+import "../styles/calendar.css"
 import HeroSection from "../components/hero-section"
 import FeaturedDestinations from "../components/featured-destinations"
 import EcoStats from "../components/eco-stats"
 import TestimonialSection from "../components/testimonial-section"
+import CitySearchInput from "../components/CitySearchInput"
+import { useToast } from "@/hooks/useToast"
+import ToastContainer from "@/components/ToastContainer"
 
 export default function Home() {
+  const { toasts, toast, removeToast } = useToast()
+  const [selectedDestination, setSelectedDestination] = useState("")
+  const [selectedCityCoordinates, setSelectedCityCoordinates] = useState(null)
+  const [travelers, setTravelers] = useState("1")
+  const [checkInDate, setCheckInDate] = useState(null)
+  const [checkOutDate, setCheckOutDate] = useState(null)
+
+  const handleSearch = () => {
+    if (selectedDestination.trim()) {
+      const dateString = checkInDate && checkOutDate 
+        ? `${checkInDate.toLocaleDateString()} - ${checkOutDate.toLocaleDateString()}`
+        : ''
+      
+      const params = new URLSearchParams({
+        city: selectedDestination.trim(),
+        travelers: travelers,
+        dates: dateString,
+        checkIn: checkInDate ? checkInDate.toISOString().split('T')[0] : '',
+        checkOut: checkOutDate ? checkOutDate.toISOString().split('T')[0] : ''
+      })
+      
+      // Add coordinates if available
+      if (selectedCityCoordinates && selectedCityCoordinates.latitude && selectedCityCoordinates.longitude) {
+        params.append('latitude', selectedCityCoordinates.latitude.toString())
+        params.append('longitude', selectedCityCoordinates.longitude.toString())
+      }
+      
+      window.location.href = `/destinations?${params.toString()}`
+    } else {
+      toast.warning('Please select a destination')
+    }
+  }
+
   return (
     <main className="min-h-screen">
       <HeroSection />
@@ -20,23 +60,84 @@ export default function Home() {
               <label htmlFor="destination" className="block text-sm font-medium text-gray-700 mb-1">
                 Destination
               </label>
-              <input
-                type="text"
-                id="destination"
+              <CitySearchInput
                 placeholder="Where do you want to go?"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                initialValue={selectedDestination}
+                onCitySelect={(city) => {
+                  const cityName = city.displayName || city.name
+                  setSelectedDestination(cityName)
+                  
+                  // Store coordinates if available
+                  if (city.latitude && city.longitude) {
+                    setSelectedCityCoordinates({
+                      latitude: city.latitude,
+                      longitude: city.longitude
+                    })
+                  } else {
+                    setSelectedCityCoordinates(null)
+                  }
+                  
+                  toast.success(`Selected: ${cityName}`)
+                }}
+                onInputChange={(value) => {
+                  setSelectedDestination(value)
+                  // Clear coordinates when manually typing
+                  if (selectedCityCoordinates) {
+                    setSelectedCityCoordinates(null)
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && selectedDestination) {
+                    e.preventDefault()
+                    handleSearch()
+                  }
+                }}
+                showPopularCities={true}
+                className="w-full"
+                inputClassName="w-full pl-10 pr-12 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                dropdownClassName="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto"
               />
             </div>
             <div className="flex-1">
               <label htmlFor="dates" className="block text-sm font-medium text-gray-700 mb-1">
                 Dates
               </label>
-              <input
-                type="text"
-                id="dates"
-                placeholder="Select dates"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
+              <div className="relative">
+                <DatePicker
+                  selected={checkInDate}
+                  onChange={(dates) => {
+                    const [start, end] = dates;
+                    setCheckInDate(start);
+                    setCheckOutDate(end);
+                    if (start && end) {
+                      toast.success(`Selected: ${start.toLocaleDateString()} - ${end.toLocaleDateString()}`);
+                    }
+                  }}
+                  startDate={checkInDate}
+                  endDate={checkOutDate}
+                  selectsRange
+                  placeholderText="Select check-in and check-out dates"
+                  dateFormat="MMM d, yyyy"
+                  minDate={new Date()}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent cursor-pointer"
+                  wrapperClassName="w-full"
+                  calendarClassName="custom-calendar"
+                  popperClassName="custom-popper"
+                  dayClassName={(date) => {
+                    const today = new Date();
+                    const isToday = date.toDateString() === today.toDateString();
+                    const isPast = date < today;
+                    
+                    if (isPast) return 'text-gray-300 cursor-not-allowed';
+                    if (isToday) return 'bg-green-100 text-green-800 font-semibold';
+                    return 'hover:bg-green-50 text-gray-900';
+                  }}
+                />
+                <Calendar 
+                  size={18} 
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 pointer-events-none" 
+                />
+              </div>
             </div>
             <div className="flex-1">
               <label htmlFor="travelers" className="block text-sm font-medium text-gray-700 mb-1">
@@ -44,6 +145,8 @@ export default function Home() {
               </label>
               <select
                 id="travelers"
+                value={travelers}
+                onChange={(e) => setTravelers(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="1">1 Traveler</option>
@@ -54,22 +157,7 @@ export default function Home() {
             </div>
             <div className="flex items-end">
               <button
-                onClick={() => {
-                  const destination = document.getElementById('destination').value
-                  const travelers = document.getElementById('travelers').value
-                  const dates = document.getElementById('dates').value
-                  
-                  if (destination.trim()) {
-                    const params = new URLSearchParams({
-                      destination: destination.trim(),
-                      travelers: travelers,
-                      dates: dates
-                    })
-                    window.location.href = `/search?${params.toString()}`
-                  } else {
-                    window.location.href = '/search'
-                  }
-                }}
+                onClick={handleSearch}
                 className="w-full md:w-auto px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
               >
                 <Search size={18} />
@@ -174,6 +262,9 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </main>
   )
 }

@@ -12,9 +12,11 @@
     "@radix-ui/react-toast": "^1.2.14",
     "@supabase/ssr": "^0.0.10",
     "@supabase/supabase-js": "^2.53.0",
+    "@types/react-datepicker": "^7.0.0",
     "lucide-react": "^0.294.0",
     "next": "14.0.0",
     "react": "^18",
+    "react-datepicker": "^8.7.0",
     "react-dom": "^18"
   },
   "devDependencies": {

@@ -1,5 +1,6 @@
 import { Inter } from "next/font/google"
 import "./globals.css"
+import "../styles/calendar.css"
 import Navbar from "../components/navbar"
 import Footer from "../components/footer"
 import { AuthProvider } from "../contexts/AuthContext"

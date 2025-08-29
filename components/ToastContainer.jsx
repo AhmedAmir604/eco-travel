@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Toast from './ui/Toast'
-import { useToast } from '@/hooks/useToast'
+import { useToast } from '@/contexts/ToastContext'
 
 const ToastContainer = () => {
   const [mounted, setMounted] = useState(false)
