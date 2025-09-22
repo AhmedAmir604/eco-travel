@@ -1,11 +1,16 @@
 'use client'
 
 // Removed dummy data import - using only real generated data
-import { Calendar, MapPin, Clock, Users, Leaf } from "lucide-react"
+import { Calendar, Users, Leaf } from "lucide-react"
 import { useToast } from "@/hooks/useToast"
 import { useState, useEffect } from "react"
 import ItineraryCard from "@/components/ItineraryCard"
 import ItineraryDetails from "@/components/ItineraryDetails"
+import ItineraryGenerationLoader from "@/components/ItineraryGenerationLoader"
+import CitySearchInput from "@/components/CitySearchInput"
+import DatePicker from "react-datepicker"
+import "react-datepicker/dist/react-datepicker.css"
+import "../../styles/calendar.css"
 
 // No dummy data - only show generated itineraries
 
@@ -25,6 +30,8 @@ export default function ItinerariesPage() {
     transportPreference: 'public',
     sustainabilityLevel: 'high'
   })
+  const [startDate, setStartDate] = useState(null)
+  const [endDate, setEndDate] = useState(null)
 
   useEffect(() => {
     setMounted(true)
@@ -34,9 +41,15 @@ export default function ItinerariesPage() {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
+  const handleCitySelect = (city) => {
+    // Use the city's display name or construct a proper destination string
+    const destination = city.displayName || `${city.name}${city.country ? `, ${city.country}` : ''}`
+    setFormData(prev => ({ ...prev, destination }))
+  }
+
   const handleGenerateItinerary = async () => {
     if (!formData.destination || !formData.duration || !formData.travelers) {
-      toast.error('Please fill in destination, duration, and number of travelers')
+      toast.error('Please select destination, travel dates, and number of travelers')
       return
     }
 
@@ -52,7 +65,7 @@ export default function ItinerariesPage() {
           travelers: parseInt(formData.travelers)
         })
       })
-      
+
       const result = await response.json()
 
       // console.log("result is here ", result);
@@ -101,54 +114,93 @@ export default function ItinerariesPage() {
             Discover carefully crafted travel plans that maximize your experience while minimizing environmental impact.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Destination (e.g., Paris, France)"
-                value={formData.destination}
-                onChange={(e) => handleInputChange('destination', e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Destination</label>
+              <CitySearchInput
+                placeholder="Search destination..."
+                onCitySelect={handleCitySelect}
+                onInputChange={(value) => handleInputChange('destination', value)}
+                initialValue={formData.destination}
+                inputClassName="w-full pl-10 pr-12 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                dropdownClassName="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto"
+                showPopularCities={true}
               />
-              <MapPin size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
-            <div className="relative">
-              <input
-                type="number"
-                placeholder="Duration (days)"
-                min="1"
-                max="30"
-                value={formData.duration}
-                onChange={(e) => handleInputChange('duration', e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              <Clock size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Travel Dates</label>
+              <div className="relative">
+                <DatePicker
+                  selected={startDate}
+                  onChange={(dates) => {
+                    const [start, end] = dates;
+                    setStartDate(start);
+                    setEndDate(end);
+                    if (start && end) {
+                      // Calculate duration in days
+                      const diffTime = Math.abs(end - start);
+                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                      handleInputChange('duration', diffDays.toString());
+                      toast.success(`Selected: ${start.toLocaleDateString()} - ${end.toLocaleDateString()} (${diffDays} days)`);
+                    }
+                  }}
+                  startDate={startDate}
+                  endDate={endDate}
+                  selectsRange
+                  placeholderText="Select travel dates"
+                  dateFormat="MMM d, yyyy"
+                  minDate={new Date()}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer"
+                  wrapperClassName="w-full"
+                  calendarClassName="custom-calendar"
+                  popperClassName="custom-popper"
+                  dayClassName={(date) => {
+                    const today = new Date();
+                    const isToday = date.toDateString() === today.toDateString();
+                    const isPast = date < today;
+
+                    if (isPast) return 'text-gray-300 cursor-not-allowed';
+                    if (isToday) return 'bg-emerald-100 text-emerald-800 font-semibold';
+                    return 'hover:bg-emerald-50 text-gray-900';
+                  }}
+                />
+                <Calendar
+                  size={18}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-600 pointer-events-none"
+                />
+              </div>
             </div>
-            <div className="relative">
-              <select
-                value={formData.travelers}
-                onChange={(e) => handleInputChange('travelers', e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                <option value="">Travelers</option>
-                <option value="1">1 Traveler</option>
-                <option value="2">2 Travelers</option>
-                <option value="3">3 Travelers</option>
-                <option value="4">4+ Travelers</option>
-              </select>
-              <Users size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Number of Travelers</label>
+              <div className="relative">
+                <select
+                  value={formData.travelers}
+                  onChange={(e) => handleInputChange('travelers', e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">Select travelers</option>
+                  <option value="1">1 Traveler</option>
+                  <option value="2">2 Travelers</option>
+                  <option value="3">3 Travelers</option>
+                  <option value="4">4+ Travelers</option>
+                </select>
+                <Users size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
             </div>
-            <div className="relative">
-              <select
-                value={formData.budget}
-                onChange={(e) => handleInputChange('budget', e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                <option value="low">Budget ($)</option>
-                <option value="medium">Medium ($$)</option>
-                <option value="high">Luxury ($$$)</option>
-              </select>
-              <Calendar size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Budget Range</label>
+              <div className="relative">
+                <select
+                  value={formData.budget}
+                  onChange={(e) => handleInputChange('budget', e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="low">Budget ($)</option>
+                  <option value="medium">Medium ($$)</option>
+                  <option value="high">Luxury ($$$)</option>
+                </select>
+                <Calendar size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
             </div>
           </div>
 
@@ -279,6 +331,14 @@ export default function ItinerariesPage() {
             onClose={() => setSelectedItinerary(null)}
           />
         )}
+
+        {/* Progressive Loading Screen */}
+        <ItineraryGenerationLoader
+          isVisible={isGenerating}
+          destination={formData.destination}
+          duration={parseInt(formData.duration) || 0}
+          travelers={parseInt(formData.travelers) || 1}
+        />
       </div>
     </main>
   )

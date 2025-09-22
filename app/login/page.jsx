@@ -20,7 +20,7 @@ export default function LoginPage() {
 
     try {
       const { error } = await signIn(email, password)
-      
+      console.log(error);
       if (error) {
         toast.error(error.message)
       } else {
@@ -41,11 +41,11 @@ export default function LoginPage() {
     }
 
     setLoading(true)
-    
+
     try {
       const { resetPassword } = useAuth()
       const { error } = await resetPassword(email)
-      
+
       if (error) {
         toast.error(error.message)
       } else {

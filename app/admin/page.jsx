@@ -3,11 +3,12 @@
 import { useState } from "react"
 import { Users, Map, Home, Truck, Calendar, BarChart, Settings, PlusCircle, Search, Edit, Trash } from "lucide-react"
 import { dummyDestinations } from "@/data/dummy-data"
-import ProtectedRoute from "@/components/protected-route"
+import AdminProtectedRoute from "@/components/AdminProtectedRoute"
+import UserManagement from "@/components/admin/UserManagement"
 import { useToast } from "@/hooks/useToast"
 
 function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("destinations")
+  const [activeTab, setActiveTab] = useState("dashboard")
   const { toast } = useToast()
 
   const handleAddDestination = () => {
@@ -274,6 +275,10 @@ function AdminDashboard() {
           </div>
         )}
 
+        {activeTab === "users" && (
+          <UserManagement />
+        )}
+
         {activeTab === "dashboard" && (
           <div>
             <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
@@ -400,8 +405,8 @@ function AdminDashboard() {
 
 export default function AdminPage() {
   return (
-    <ProtectedRoute>
+    <AdminProtectedRoute>
       <AdminDashboard />
-    </ProtectedRoute>
+    </AdminProtectedRoute>
   )
 }

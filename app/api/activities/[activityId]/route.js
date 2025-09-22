@@ -44,6 +44,8 @@ export async function GET(request, { params }) {
     const data = await response.json();
     const activity = data.data;
 
+    console.log("amadeus data.data here",data.data);
+
     // Transform the activity data
     const activityDetail = {
       id: activity.id,
@@ -80,7 +82,7 @@ export async function GET(request, { params }) {
 
   } catch (error) {
     console.error('Activity detail API error:', error);
-    
+
     // Fallback to dummy data
     return getFallbackActivityDetail(params.activityId);
   }

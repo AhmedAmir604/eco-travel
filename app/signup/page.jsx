@@ -55,16 +55,40 @@ export default function SignupPage() {
           full_name: formData.name
         }
       })
-      
+
+      console.log(error);
+
       if (error) {
         toast.error(error.message)
       } else {
+        // Manually create profile since we removed the trigger
+        if (data.user) {
+          try {
+            const { createClient } = await import('@/lib/supabase/client')
+            const supabase = createClient()
+            
+            await supabase
+              .from('profiles')
+              .insert({
+                id: data.user.id,
+                email: data.user.email,
+                full_name: formData.name,
+                role: 'user'
+              })
+            
+            console.log('Profile created successfully')
+          } catch (profileError) {
+            console.log('Profile creation failed, but signup succeeded:', profileError)
+          }
+        }
+
         toast.success('Account created successfully! Please check your email to verify your account.')
         // Optionally redirect after a delay
         setTimeout(() => {
           router.push('/login')
-        }, 3000)
+        }, 1000)
       }
+        
     } catch (err) {
       toast.error('An unexpected error occurred')
     } finally {
