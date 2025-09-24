@@ -102,7 +102,6 @@ export async function DELETE(request, { params }) {
     );
 
     if (deleteError) {
-      console.log("deleteError", deleteError);
       return NextResponse.json({ error: deleteError.message }, { status: 400 });
     }
 

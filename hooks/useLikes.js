@@ -72,7 +72,7 @@ export function useLikes() {
     const { id: activityId } = activity;
     const wasLiked = likedActivities.has(activityId);
     
-    console.log(`[TOGGLE LIKE] Activity: ${activityId}, Was liked: ${wasLiked}`);
+    //(`[TOGGLE LIKE] Activity: ${activityId}, Was liked: ${wasLiked}`);
 
     // Optimistic update
     setLikedActivities(prev => {

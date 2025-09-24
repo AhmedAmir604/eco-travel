@@ -68,7 +68,7 @@ export default function ItinerariesPage() {
 
       const result = await response.json()
 
-      // console.log("result is here ", result);
+      // //("result is here ", result);
 
       if (result.success) {
 

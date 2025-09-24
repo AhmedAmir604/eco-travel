@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from "next/link"
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/hooks/useToast'
+import { useToast } from '@/contexts/ToastContext'
 import { useAuthRedirect } from '@/hooks/useAuthRedirect'
 
 export default function SignupPage() {
@@ -69,7 +69,7 @@ export default function SignupPage() {
         }
       })
 
-      console.log(error);
+      //(error);
 
       if (error) {
         toast.error(error.message)
@@ -89,9 +89,9 @@ export default function SignupPage() {
                 role: 'user'
               })
             
-            console.log('Profile created successfully')
+            //('Profile created successfully')
           } catch (profileError) {
-            console.log('Profile creation failed, but signup succeeded:', profileError)
+            //('Profile creation failed, but signup succeeded:', profileError)
           }
         }
 

@@ -3,7 +3,6 @@ import { amadeusAPI } from '@/lib/amadeus';
 
 export async function GET(request) {
   try {
-    // console.log('API route called');
 
     const { searchParams } = new URL(request.url);
     const city = searchParams.get('city');
@@ -23,14 +22,12 @@ export async function GET(request) {
     const defaultCheckIn = checkIn || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     const defaultCheckOut = checkOut || new Date(Date.now() + 9 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    // console.log('Searching for city code for:', city);
 
     
     // Search for hotels using precise coordinates from Google Maps
     
     const hotels = await amadeusAPI.searchHotels(city, defaultCheckIn, defaultCheckOut, parseInt(adults), parseInt(radius));
 
-    console.log(`Found ${hotels.length} eco-friendly hotels in ${city}`);
 
     // Return results or empty state
     if (hotels.length === 0) {

@@ -190,7 +190,7 @@ const { isLiked, loading } = useLikeStatus(activityId);
    // In browser console
    fetch('/api/likes?activityId=123')
      .then(r => r.json())
-     .then(console.log);
+     .then(//);
    ```
 
 2. **Verify database data:**

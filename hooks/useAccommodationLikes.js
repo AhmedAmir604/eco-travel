@@ -72,7 +72,6 @@ export function useAccommodationLikes() {
     const { id: accommodationId } = accommodation;
     const wasLiked = likedAccommodations.has(accommodationId);
     
-    console.log(`[TOGGLE ACCOMMODATION LIKE] Accommodation: ${accommodationId}, Was liked: ${wasLiked}`);
 
     // Optimistic update
     setLikedAccommodations(prev => {
@@ -110,14 +109,6 @@ export function useAccommodationLikes() {
       });
       
       const data = await response.json();
-      
-      console.log(`[TOGGLE ACCOMMODATION LIKE] API Response:`, {
-        success: data.success,
-        action: data.action,
-        isLiked: data.isLiked,
-        message: data.message,
-        accommodationName: accommodation.name
-      });
       
       if (!data.success) {
         throw new Error(data.error || 'Failed to toggle accommodation like');

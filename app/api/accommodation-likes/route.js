@@ -57,7 +57,6 @@ export async function POST(request) {
 
     if (existingLike) {
       // If already liked, remove it (toggle behavior)
-      console.log(`[ACCOMMODATION LIKES API] Removing existing like for accommodation ${accommodationId}`);
       
       const { error: deleteError } = await supabase
         .from('user_accommodation_likes')

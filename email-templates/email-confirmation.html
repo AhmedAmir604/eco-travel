@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to EcoTravel - Confirm Your Email</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f9f0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="90" r="2.5" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="60" r="1.5" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            animation: float 20s infinite linear;
+        }
+        @keyframes float {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+        .logo svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+        .header p {
+            margin: 10px 0 0;
+            font-size: 18px;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+        .content {
+            padding: 50px 30px;
+        }
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .welcome-message h2 {
+            font-size: 28px;
+            color: #059669;
+            margin: 0 0 15px;
+            font-weight: 600;
+        }
+        .welcome-message p {
+            font-size: 18px;
+            color: #6b7280;
+            margin: 0;
+            line-height: 1.6;
+        }
+        .confirmation-section {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            margin: 40px 0;
+            border: 1px solid #d1fae5;
+        }
+        .confirmation-section h3 {
+            font-size: 20px;
+            color: #065f46;
+            margin: 0 0 15px;
+            font-weight: 600;
+        }
+        .confirmation-section p {
+            font-size: 16px;
+            color: #047857;
+            margin: 0 0 30px;
+            line-height: 1.6;
+        }
+        .confirm-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            text-decoration: none;
+            padding: 18px 36px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .confirm-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(16, 185, 129, 0.4);
+        }
+        .confirm-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .confirm-button:hover::before {
+            left: 100%;
+        }
+        .features {
+            margin: 50px 0;
+        }
+        .features h3 {
+            text-align: center;
+            font-size: 24px;
+            color: #374151;
+            margin: 0 0 30px;
+            font-weight: 600;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        .feature-item {
+            text-align: center;
+            padding: 25px 20px;
+            background-color: #f9fafb;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+        .feature-item h4 {
+            font-size: 16px;
+            color: #374151;
+            margin: 0 0 8px;
+            font-weight: 600;
+        }
+        .feature-item p {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0;
+            line-height: 1.5;
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+            margin: 40px 0;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 40px 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            margin: 0 0 10px;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+        .footer .eco-message {
+            color: #059669;
+            font-weight: 600;
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        .social-links {
+            margin: 25px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+        .social-links a:hover {
+            color: #059669;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                box-shadow: none;
+            }
+            .header, .content, .footer {
+                padding: 30px 20px;
+            }
+            .header h1 {
+                font-size: 28px;
+            }
+            .welcome-message h2 {
+                font-size: 24px;
+            }
+            .confirmation-section {
+                padding: 30px 20px;
+            }
+            .confirm-button {
+                padding: 16px 32px;
+                font-size: 16px;
+            }
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h1>Welcome to EcoTravel!</h1>
+            <p>Your sustainable adventure begins here</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="welcome-message">
+                <h2>🌱 Welcome, Eco Explorer!</h2>
+                <p>Thank you for joining our community of conscious travelers. You're one step away from discovering amazing eco-friendly destinations and sustainable travel experiences!</p>
+            </div>
+
+            <div class="confirmation-section">
+                <h3>📧 Confirm Your Email Address</h3>
+                <p>To complete your registration and start planning your sustainable adventures, please confirm your email address by clicking the button below.</p>
+                <a href="{{ .ConfirmationURL }}" class="confirm-button">Confirm My Email</a>
+            </div>
+
+            <div class="features">
+                <h3>What awaits you at EcoTravel:</h3>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🌍</div>
+                        <h4>Eco-Friendly Destinations</h4>
+                        <p>Discover beautiful places that prioritize sustainability and conservation</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🗺️</div>
+                        <h4>Smart Itineraries</h4>
+                        <p>AI-powered trip planning that minimizes your carbon footprint</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🏨</div>
+                        <h4>Green Accommodations</h4>
+                        <p>Stay at certified eco-friendly hotels and sustainable lodges</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🚲</div>
+                        <h4>Sustainable Activities</h4>
+                        <p>Enjoy activities that support local communities and environment</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div style="text-align: center; color: #6b7280; font-size: 16px;">
+                <strong>Having trouble with the button?</strong><br>
+                Copy and paste this link into your browser:<br>
+                <a href="{{ .ConfirmationURL }}" style="color: #059669; word-break: break-all; font-size: 14px;">{{ .ConfirmationURL }}</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="eco-message">
+                🌿 Together, we're making travel more sustainable
+            </div>
+            
+            <p>This email was sent because you created an account with EcoTravel.</p>
+            <p>If you didn't sign up, you can safely ignore this email.</p>
+            
+            <div class="social-links">
+                <a href="#">Follow us</a> •
+                <a href="#">Support</a> •
+                <a href="#">Privacy Policy</a>
+            </div>
+            
+            <p style="margin-top: 25px; font-size: 12px;">
+                © 2025 EcoTravel. All rights reserved.<br>
+                Making the world a greener place, one journey at a time.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

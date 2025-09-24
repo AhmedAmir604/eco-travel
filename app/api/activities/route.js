@@ -97,7 +97,7 @@ export async function GET(request) {
     const city = searchParams.get('city');
     const latitude = searchParams.get('latitude');
     const longitude = searchParams.get('longitude');
-    const radius = searchParams.get('radius') || '5';
+    const radius = searchParams.get('radius') || '1';
 
     let coords;
     let locationName = city || 'Unknown Location';

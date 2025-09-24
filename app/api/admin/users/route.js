@@ -110,7 +110,6 @@ export async function POST(request) {
     // Verify admin access
     const adminCheck = await verifyAdminAccess(supabase);
     if (adminCheck.error) {
-      console.log("Admin check failed:", adminCheck.error);
       return NextResponse.json(
         { error: adminCheck.error },
         { status: adminCheck.status }

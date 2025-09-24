@@ -70,7 +70,7 @@ export default function DestinationsPage() {
       
       if (coordinates && coordinates.latitude && coordinates.longitude) {
         apiUrl += `&latitude=${coordinates.latitude}&longitude=${coordinates.longitude}`
-        console.log('Using coordinates from city suggestion:', coordinates)
+        //('Using coordinates from city suggestion:', coordinates)
       }
       
       const response = await fetch(apiUrl)

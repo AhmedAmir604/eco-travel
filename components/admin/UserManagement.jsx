@@ -39,10 +39,10 @@ const UserManagement = () => {
         ...(filters.search && { search: filters.search }),
         ...(filters.role && { role: filters.role }),
       });
-      console.log("start");
+      //("start");
       const response = await fetch(`/api/admin/users?${params}`);
       const result = await response.json();
-      console.log("end");
+      //("end");
 
       if (result.success) {
         setUsers(result.data.users);
@@ -89,7 +89,7 @@ const UserManagement = () => {
         setShowCreateModal(false);
         fetchUsers();
       } else {
-        console.log(result.error);
+        //(result.error);
         toast.error(result.error || "Failed to create user");
       }
     } catch (error) {

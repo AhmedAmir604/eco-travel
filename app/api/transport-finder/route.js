@@ -45,7 +45,7 @@ export async function POST(request) {
         results = await discoverAreaTransport(location, radius)
     }
     
-    // console.log("results:", results);
+    // //("results:", results);
 
     return Response.json({
       success: true,

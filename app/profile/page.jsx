@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/protected-route'
 import { User, Mail, Calendar, Shield, Edit2, Save, X, Eye, EyeOff } from 'lucide-react'
-import { useToast } from '@/hooks/useToast'
+import { useToast } from '@/contexts/ToastContext'
 
 function ProfilePage() {
-  const { user, signOut, updateProfile, updateEmail, updatePassword } = useAuth()
+  const { user, signOut, updateProfile, updatePassword } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -74,7 +74,7 @@ function ProfilePage() {
   const handleSignOut = async () => {
     try {
       await signOut()
-      toast.success('Successfully signed out!')
+      toast.success('We hope to see you again :(')
     } catch (error) {
       toast.error('Error signing out. Please try again.')
     }
@@ -129,9 +129,10 @@ function ProfilePage() {
   }
 
   const handleSaveProfile = async () => {
-    if (!validateForm()) { 
-        console.log("failed")
-      return}
+    if (!validateForm()) {
+      //("failed")
+      return
+    }
 
     setLoading(true)
     try {
@@ -142,17 +143,17 @@ function ProfilePage() {
         bio: formData.bio,
         email: formData.email
       }
-      console.log("updating", profileUpdates)
+      //("updating", profileUpdates)
       const { data, error } = await updateProfile(profileUpdates)
       if (error) throw error
 
       // Show appropriate success message
       if (data?.emailChanged) {
-        toast.info('Profile updated! Please check your email to confirm the new email address.')
+        toast.info('Profile updated!')
       } else {
         toast.success('Profile updated successfully!')
       }
-      
+
       setIsEditing(false)
     } catch (error) {
       toast.error(error.message || 'Failed to update profile')
@@ -209,7 +210,7 @@ function ProfilePage() {
         bio: user.user_metadata?.bio || ''
       })
     }
-    
+
     setIsEditing(false)
     toast.info('Changes cancelled')
   }
@@ -422,7 +423,7 @@ function ProfilePage() {
           </div>
         </div>
 
-        <div className="mt-8 bg-white shadow rounded-lg">
+        {/* <div className="mt-8 bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Account Statistics</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -440,7 +441,7 @@ function ProfilePage() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Password Change Modal */}

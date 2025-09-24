@@ -4,28 +4,18 @@ import { useState } from 'react'
 import Link from "next/link"
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/hooks/useToast'
+import { useToast } from '@/contexts/ToastContext'
 import { useAuthRedirect } from '@/hooks/useAuthRedirect'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn } = useAuth()
+  const { signIn, resetPassword } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
-  
-  // Redirect authenticated users away from login page
-  const { loading: authLoading } = useAuthRedirect({ redirectIfAuth: true })
 
-  // Show loading while checking authentication
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-      </div>
-    )
-  }
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -33,11 +23,11 @@ export default function LoginPage() {
 
     try {
       const { error } = await signIn(email, password)
-      console.log(error);
+      //(error);
       if (error) {
         toast.error(error.message)
       } else {
-        toast.success('Login successful! Redirecting...')
+        toast.success('Login successful!')
         router.push('/')
       }
     } catch (err) {
@@ -56,7 +46,6 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const { resetPassword } = useAuth()
       const { error } = await resetPassword(email)
 
       if (error) {
@@ -65,11 +54,26 @@ export default function LoginPage() {
         toast.success('Password reset email sent! Check your inbox.')
       }
     } catch (err) {
+      //(err)
       toast.error('Failed to send reset email')
     } finally {
       setLoading(false)
     }
   }
+
+
+  // Redirect authenticated users away from login page
+  const { loading: authLoading } = useAuthRedirect({ redirectIfAuth: true })
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+      </div>
+    )
+  }
+
 
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

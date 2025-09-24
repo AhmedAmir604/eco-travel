@@ -1,0 +1,43 @@
+WELCOME TO ECOTRAVEL! 🌱
+============================
+
+Welcome, Eco Explorer!
+
+Thank you for joining our community of conscious travelers. You're one step away from discovering amazing eco-friendly destinations and sustainable travel experiences!
+
+CONFIRM YOUR EMAIL ADDRESS
+===========================
+
+To complete your registration and start planning your sustainable adventures, please confirm your email address by clicking the link below:
+
+{{ .ConfirmationURL }}
+
+WHAT AWAITS YOU AT ECOTRAVEL:
+=============================
+
+🌍 ECO-FRIENDLY DESTINATIONS
+Discover beautiful places that prioritize sustainability and conservation
+
+🗺️ SMART ITINERARIES  
+AI-powered trip planning that minimizes your carbon footprint
+
+🏨 GREEN ACCOMMODATIONS
+Stay at certified eco-friendly hotels and sustainable lodges
+
+🚲 SUSTAINABLE ACTIVITIES
+Enjoy activities that support local communities and environment
+
+🌿 Together, we're making travel more sustainable
+
+---
+
+Having trouble with the link? Copy and paste it into your browser:
+{{ .ConfirmationURL }}
+
+This email was sent because you created an account with EcoTravel.
+If you didn't sign up, you can safely ignore this email.
+
+Follow us • Support • Privacy Policy
+
+© 2025 EcoTravel. All rights reserved.
+Making the world a greener place, one journey at a time.

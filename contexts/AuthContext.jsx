@@ -70,21 +70,16 @@ export const AuthProvider = ({ children }) => {
 
   const updatePassword = async (password) => {
     try {
-      const response = await fetch('/api/profile/password', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ newPassword: password }),
+      // For password reset flow, use Supabase directly
+      const { data, error } = await supabase.auth.updateUser({
+        password: password
       })
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        return { data: null, error: { message: result.error } }
+      if (error) {
+        return { data: null, error }
       }
 
-      return { data: result, error: null }
+      return { data, error: null }
     } catch (error) {
       return { data: null, error: { message: 'Failed to update password' } }
     }
@@ -106,7 +101,7 @@ export const AuthProvider = ({ children }) => {
         return { data: null, error: { message: result.error } }
       }
 
-      console.log("resutl here ",result)
+      //("resutl here ",result)
 
       // Refresh the user session to get updated data
       const { data: { session } } = await supabase.auth.getSession()

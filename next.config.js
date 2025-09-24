@@ -10,8 +10,12 @@ const nextConfig = {
     domains: ["placeholder.svg"],
     unoptimized: true,
   },
-  experimental: {
-    appDir: true,
+
+  compiler: {
+    // remove all console.* in production builds
+    removeConsole: process.env.NODE_ENV === 'production',
+    // or keep important ones:
+    // removeConsole: { exclude: ['error', 'warn'] }
   },
 }
 

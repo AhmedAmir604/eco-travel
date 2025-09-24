@@ -28,7 +28,6 @@ export async function GET(request, { params }) {
       `/v1/shopping/activities/${activityId}`
     );
 
-    console.log("Activity ID:", activityId);
 
     if (!response.ok) {
       if (response.status === 404) {

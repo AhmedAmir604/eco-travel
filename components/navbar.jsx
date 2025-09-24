@@ -24,6 +24,10 @@ export default function Navbar() {
     }
   }
 
+const profileClickHandler = () => {
+  setIsUserMenuOpen(false);
+}
+
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -123,6 +127,15 @@ export default function Navbar() {
                 {isUserMenuOpen && (
                   <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                     <div className="py-1">
+
+                    <Link
+                    onClick={profileClickHandler}
+                        href="/profile"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
+                      </Link>
                       <button
                         onClick={handleSignOut}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -130,6 +143,7 @@ export default function Navbar() {
                         <LogOut className="mr-2 h-4 w-4" />
                         Sign out
                       </button>
+                     
                     </div>
                   </div>
                 )}

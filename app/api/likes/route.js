@@ -53,7 +53,7 @@ export async function POST(request) {
 
     if (existingLike) {
       // If already liked, remove it (toggle behavior)
-      console.log(`[LIKES API] Removing existing like for activity ${activityId}`);
+      //(`[LIKES API] Removing existing like for activity ${activityId}`);
       
       const { error: deleteError } = await supabase
         .from('user_activity_likes')
