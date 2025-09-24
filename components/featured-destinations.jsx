@@ -33,7 +33,6 @@ export default function FeaturedDestinations() {
               }&longitude=${city.coords.longitude}&radius=10`
             );
             const data = await response.json();
-
             if (data.success && data.data) {
               // Take first 2 activities from each city, ensure uniqueness
               const cityActivities = data.data

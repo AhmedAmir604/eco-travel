@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
+import { makeAmadeusRequest, hasAmadeusCredentials } from '@/lib/amadeus';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
+    const countryCode = searchParams.get('countryCode'); // Optional country filter
 
     if (!query || query.trim().length < 2) {
       return NextResponse.json({ 
@@ -13,33 +15,35 @@ export async function GET(request) {
       });
     }
 
-    // GeoDB Cities API configuration
-    const options = {
-      method: 'GET',
-      headers: {
-        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || '',
-        'X-RapidAPI-Host': 'wft-geo-db.p.rapidapi.com'
-      }
-    };
-
-    // Check if API key is available
-    if (!process.env.RAPIDAPI_KEY) {
-      console.warn('RAPIDAPI_KEY not found, using fallback cities');
+    // Check if Amadeus credentials are available
+    if (!hasAmadeusCredentials()) {
+      console.warn('Amadeus credentials not found, using fallback cities');
       return getFallbackCities(query, 'no_key');
     }
 
-    // API endpoint for city search with namePrefix
-    const url = `https://wft-geo-db.p.rapidapi.com/v1/geo/cities?namePrefix=${encodeURIComponent(query)}&limit=10&offset=0&types=CITY&minPopulation=10000`;
+    // Build Amadeus API parameters
+    const params = new URLSearchParams({
+      keyword: query.trim(),
+      max: '10'
+    });
 
-    const response = await fetch(url, options);
+    // Add country filter if provided
+    if (countryCode) {
+      params.append('countryCode', countryCode);
+    }
+
+    // Make request to Amadeus Cities API
+    const response = await makeAmadeusRequest(
+      `/v1/reference-data/locations/cities?${params}`
+    );
 
     if (!response.ok) {
       if (response.status === 401) {
-        console.warn('GeoDB API key not configured, using fallback cities');
+        console.warn('Amadeus API unauthorized, using fallback cities');
         return getFallbackCities(query, 'no_key');
       }
       if (response.status === 429) {
-        console.warn('GeoDB API rate limit exceeded, using fallback cities');
+        console.warn('Amadeus API rate limit exceeded, using fallback cities');
         return getFallbackCities(query, 'rate_limited');
       }
       throw new Error(`API request failed: ${response.status} ${response.statusText}`);
@@ -47,23 +51,28 @@ export async function GET(request) {
 
     const data = await response.json();
 
-    // Transform the response to match our expected format
-    const cities = data.data?.map(city => ({
-      id: city.id,
-      name: city.name,
-      region: city.region,
-      country: city.country,
-      countryCode: city.countryCode,
-      displayName: `${city.name}, ${city.region ? city.region + ', ' : ''}${city.country}`,
-      population: city.population,
-      latitude: city.latitude,
-      longitude: city.longitude
-    })) || [];
+    // Transform Amadeus response to match our expected format
+    const cities = data.data?.map(city => {
+      const countryName = getCountryName(city.address?.countryCode);
+      const displayName = `${city.name}, ${countryName}`;
+
+      return {
+        id: city.iataCode || `${city.name}-${city.address?.countryCode}`,
+        name: city.name,
+        region: null, // Don't show region codes
+        country: countryName,
+        countryCode: city.address?.countryCode,
+        displayName: displayName,
+        iataCode: city.iataCode,
+        latitude: city.geoCode?.latitude,
+        longitude: city.geoCode?.longitude
+      };
+    }) || [];
 
     return NextResponse.json({
       success: true,
       data: cities,
-      total: data.metadata?.totalCount || cities.length
+      total: data.meta?.count || cities.length
     });
 
   } catch (error) {
@@ -78,24 +87,89 @@ export async function GET(request) {
   }
 }
 
+// Helper function to get country name from country code
+function getCountryName(countryCode) {
+  const countryNames = {
+    'US': 'United States',
+    'GB': 'United Kingdom',
+    'FR': 'France',
+    'DE': 'Germany',
+    'IT': 'Italy',
+    'ES': 'Spain',
+    'JP': 'Japan',
+    'AU': 'Australia',
+    'CA': 'Canada',
+    'IN': 'India',
+    'PK': 'Pakistan',
+    'PT': 'Portugal',
+    'NL': 'Netherlands',
+    'CH': 'Switzerland',
+    'AT': 'Austria',
+    'BE': 'Belgium',
+    'SE': 'Sweden',
+    'NO': 'Norway',
+    'DK': 'Denmark',
+    'FI': 'Finland',
+    'IE': 'Ireland',
+    'SG': 'Singapore',
+    'AE': 'United Arab Emirates',
+    'TH': 'Thailand',
+    'MY': 'Malaysia',
+    'ID': 'Indonesia',
+    'PH': 'Philippines',
+    'VN': 'Vietnam',
+    'KR': 'South Korea',
+    'CN': 'China',
+    'HK': 'Hong Kong',
+    'TW': 'Taiwan',
+    'BR': 'Brazil',
+    'MX': 'Mexico',
+    'AR': 'Argentina',
+    'CL': 'Chile',
+    'CO': 'Colombia',
+    'PE': 'Peru',
+    'ZA': 'South Africa',
+    'EG': 'Egypt',
+    'MA': 'Morocco',
+    'KE': 'Kenya',
+    'NG': 'Nigeria',
+    'RU': 'Russia',
+    'TR': 'Turkey',
+    'GR': 'Greece',
+    'CZ': 'Czech Republic',
+    'PL': 'Poland',
+    'HU': 'Hungary',
+    'RO': 'Romania',
+    'BG': 'Bulgaria',
+    'HR': 'Croatia',
+    'SI': 'Slovenia',
+    'SK': 'Slovakia',
+    'LT': 'Lithuania',
+    'LV': 'Latvia',
+    'EE': 'Estonia'
+  };
+  
+  return countryNames[countryCode] || countryCode || 'Unknown';
+}
+
 // Fallback function with popular cities for when API is not available
 function getFallbackCities(query, reason = 'api_unavailable') {
   const popularCities = [
-    { id: 1, name: 'London', region: 'England', country: 'United Kingdom', countryCode: 'GB', population: 8982000 },
-    { id: 2, name: 'Los Angeles', region: 'California', country: 'United States', countryCode: 'US', population: 3980400 },
-    { id: 3, name: 'Lahore', region: 'Punjab', country: 'Pakistan', countryCode: 'PK', population: 11126285 },
-    { id: 4, name: 'Las Vegas', region: 'Nevada', country: 'United States', countryCode: 'US', population: 648685 },
-    { id: 5, name: 'Lisbon', region: 'Lisbon', country: 'Portugal', countryCode: 'PT', population: 517802 },
-    { id: 6, name: 'Liverpool', region: 'England', country: 'United Kingdom', countryCode: 'GB', population: 498042 },
-    { id: 7, name: 'Lyon', region: 'Auvergne-Rhône-Alpes', country: 'France', countryCode: 'FR', population: 515695 },
-    { id: 8, name: 'Paris', region: 'Île-de-France', country: 'France', countryCode: 'FR', population: 2161000 },
-    { id: 9, name: 'New York', region: 'New York', country: 'United States', countryCode: 'US', population: 8175133 },
-    { id: 10, name: 'Tokyo', region: 'Tokyo', country: 'Japan', countryCode: 'JP', population: 9273000 },
-    { id: 11, name: 'Madrid', region: 'Madrid', country: 'Spain', countryCode: 'ES', population: 3223334 },
-    { id: 12, name: 'Melbourne', region: 'Victoria', country: 'Australia', countryCode: 'AU', population: 4963349 },
-    { id: 13, name: 'Mumbai', region: 'Maharashtra', country: 'India', countryCode: 'IN', population: 12442373 },
-    { id: 14, name: 'Munich', region: 'Bavaria', country: 'Germany', countryCode: 'DE', population: 1471508 },
-    { id: 15, name: 'Milan', region: 'Lombardy', country: 'Italy', countryCode: 'IT', population: 1378689 }
+    { id: 'LON', name: 'London', region: 'England', country: 'United Kingdom', countryCode: 'GB', iataCode: 'LON', latitude: 51.5074, longitude: -0.1278 },
+    { id: 'LAX', name: 'Los Angeles', region: 'California', country: 'United States', countryCode: 'US', iataCode: 'LAX', latitude: 34.0522, longitude: -118.2437 },
+    { id: 'LHE', name: 'Lahore', region: 'Punjab', country: 'Pakistan', countryCode: 'PK', iataCode: 'LHE', latitude: 31.558, longitude: 74.35071 },
+    { id: 'LAS', name: 'Las Vegas', region: 'Nevada', country: 'United States', countryCode: 'US', iataCode: 'LAS', latitude: 36.1699, longitude: -115.1398 },
+    { id: 'LIS', name: 'Lisbon', region: 'Lisbon', country: 'Portugal', countryCode: 'PT', iataCode: 'LIS', latitude: 38.7223, longitude: -9.1393 },
+    { id: 'LPL', name: 'Liverpool', region: 'England', country: 'United Kingdom', countryCode: 'GB', iataCode: 'LPL', latitude: 53.4084, longitude: -2.9916 },
+    { id: 'LYS', name: 'Lyon', region: 'Auvergne-Rhône-Alpes', country: 'France', countryCode: 'FR', iataCode: 'LYS', latitude: 45.7640, longitude: 4.8357 },
+    { id: 'PAR', name: 'Paris', region: 'Île-de-France', country: 'France', countryCode: 'FR', iataCode: 'PAR', latitude: 48.8566, longitude: 2.3522 },
+    { id: 'NYC', name: 'New York', region: 'New York', country: 'United States', countryCode: 'US', iataCode: 'NYC', latitude: 40.7128, longitude: -74.0060 },
+    { id: 'TYO', name: 'Tokyo', region: 'Tokyo', country: 'Japan', countryCode: 'JP', iataCode: 'TYO', latitude: 35.6762, longitude: 139.6503 },
+    { id: 'MAD', name: 'Madrid', region: 'Madrid', country: 'Spain', countryCode: 'ES', iataCode: 'MAD', latitude: 40.4168, longitude: -3.7038 },
+    { id: 'MEL', name: 'Melbourne', region: 'Victoria', country: 'Australia', countryCode: 'AU', iataCode: 'MEL', latitude: -37.8136, longitude: 144.9631 },
+    { id: 'BOM', name: 'Mumbai', region: 'Maharashtra', country: 'India', countryCode: 'IN', iataCode: 'BOM', latitude: 19.0760, longitude: 72.8777 },
+    { id: 'MUC', name: 'Munich', region: 'Bavaria', country: 'Germany', countryCode: 'DE', iataCode: 'MUC', latitude: 48.1351, longitude: 11.5820 },
+    { id: 'MIL', name: 'Milan', region: 'Lombardy', country: 'Italy', countryCode: 'IT', iataCode: 'MIL', latitude: 45.4642, longitude: 9.1900 }
   ];
 
   const filteredCities = popularCities
@@ -105,16 +179,14 @@ function getFallbackCities(query, reason = 'api_unavailable') {
     )
     .map(city => ({
       ...city,
-      displayName: `${city.name}, ${city.region ? city.region + ', ' : ''}${city.country}`,
-      latitude: null,
-      longitude: null
+      displayName: `${city.name}, ${city.country}`
     }))
     .slice(0, 10);
 
   const messages = {
-    api_unavailable: 'Using fallback city data. Configure RAPIDAPI_KEY for full functionality.',
+    api_unavailable: 'Using fallback city data. Configure Amadeus API credentials for full functionality.',
     rate_limited: 'API rate limit exceeded. Using fallback data. Consider upgrading your API plan.',
-    no_key: 'No API key configured. Using static city data. Add RAPIDAPI_KEY to environment variables.'
+    no_key: 'No Amadeus API credentials configured. Using static city data. Add AMADEUS_API_KEY and AMADEUS_API_SECRET to environment variables.'
   };
 
   return NextResponse.json({

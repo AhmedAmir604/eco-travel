@@ -41,7 +41,6 @@ async function getCityCoordinates(cityName) {
   // Priority 1: GeoDB API (primary service)
   const geoDbResult = await getGeoCityCoordinates(cityName);
   if (geoDbResult) {
-    console.log('Using GeoDB coordinates for', cityName, ':', geoDbResult);
     return geoDbResult;
   }
 
@@ -56,7 +55,6 @@ async function getCityCoordinates(cityName) {
         const data = await response.json();
         if (data.results && data.results.length > 0) {
           const location = data.results[0].geometry.location;
-          console.log('Using Google Maps coordinates for', cityName, ':', location);
           return {
             latitude: location.lat,
             longitude: location.lng,
@@ -110,18 +108,17 @@ export async function GET(request) {
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude)
       };
-      console.log('Using provided coordinates:', coords);
     } else if (city) {
       // Priority 2: Geocode the city name as fallback
       coords = await getCityCoordinates(city);
-      console.log('Geocoded coordinates for', city, ':', coords);
+      // ('Geocoded coordinates for', city, ':', coords);
     } else {
       return NextResponse.json({
         success: false,
         error: 'City name or coordinates are required'
       }, { status: 400 });
     }
-    console.log("coords here ", coords);
+    // ("coords here ", coords);
     // Check if Amadeus credentials are available
     if (!hasAmadeusCredentials()) {
       console.warn('Amadeus API credentials not configured, using fallback data');
@@ -135,6 +132,9 @@ export async function GET(request) {
       radius: radius
     });
 
+    // ("params",params);
+   
+
     const response = await makeAmadeusRequest(
       `/v1/shopping/activities?${params}`
     );
@@ -145,6 +145,7 @@ export async function GET(request) {
     }
 
     const data = await response.json();
+    // ("here", data);
 
     // Transform the activities data
     const activities = data.data?.map(activity => ({

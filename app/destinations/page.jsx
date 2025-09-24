@@ -56,7 +56,7 @@ export default function DestinationsPage() {
       loadActivitiesForCity(cityParam, coordinates)
       
       // Show welcome message
-      toast.success(`Searching for eco-friendly activities in ${cityParam}`)
+      // toast.success(`Searching for eco-friendly activities in ${cityParam}`)
     } 
   }, [searchParams])
 
@@ -81,13 +81,13 @@ export default function DestinationsPage() {
         if (!data.fallback) {
           toast.success(`Found ${data.data.length} activities in ${cityName}`)
         } else {
-          toast.info(`Showing eco-friendly activities for ${cityName}`)
+          // toast.info(`Showing eco-friendly activities for ${cityName}`)
         }
       } else {
-        toast.error('Failed to load activities')
+        // toast.error('Failed to load activities')
       }
     } catch (error) {
-      console.error('Error loading activities:', error)
+      // console.error('Error loading activities:', error)
       toast.error('Error loading activities. Please try again.')
     } finally {
       setLoading(false)

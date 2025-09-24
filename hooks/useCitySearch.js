@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-export function useCitySearch(debounceMs = 300) {
+export function useCitySearch(debounceMs = 300, countryCode = null) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -33,8 +33,18 @@ export function useCitySearch(debounceMs = 300) {
     setError(null);
 
     try {
+      // Build query parameters
+      const params = new URLSearchParams({
+        q: searchQuery
+      });
+      
+      // Add country filter if provided
+      if (countryCode) {
+        params.append('countryCode', countryCode);
+      }
+
       const response = await fetch(
-        `/api/cities?q=${encodeURIComponent(searchQuery)}`,
+        `/api/cities?${params}`,
         { 
           signal: abortController.current.signal,
           headers: {
@@ -59,7 +69,7 @@ export function useCitySearch(debounceMs = 300) {
         
         // Only show error if it's a true error, not just fallback info
         if (data.fallback && data.message && !data.reason?.includes('no_key')) {
-          console.info('City search fallback:', data.message);
+          console.info('City search fallback:', data);
         }
       } else {
         throw new Error(data.error || 'Search failed');
@@ -94,7 +104,7 @@ export function useCitySearch(debounceMs = 300) {
         clearTimeout(debounceTimer.current);
       }
     };
-  }, [query, debouncedSearch, debounceMs]);
+  }, [query, debouncedSearch, debounceMs, countryCode]);
 
   // Cleanup on unmount
   useEffect(() => {

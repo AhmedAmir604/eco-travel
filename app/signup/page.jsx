@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/useToast'
+import { useAuthRedirect } from '@/hooks/useAuthRedirect'
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -18,6 +19,18 @@ export default function SignupPage() {
   const { signUp } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
+  
+  // Redirect authenticated users away from signup page
+  const { loading: authLoading } = useAuthRedirect({ redirectIfAuth: true })
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+      </div>
+    )
+  }
 
   const handleChange = (e) => {
     setFormData({

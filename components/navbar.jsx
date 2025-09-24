@@ -5,12 +5,14 @@ import Link from "next/link"
 import { Menu, X, User, LogOut } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/useToast"
+import { useAdmin } from "@/hooks/useAdmin"
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const { user, signOut, loading } = useAuth()
   const { toast } = useToast()
+  const { isAdmin,  authLoading } = useAdmin();
 
   const handleSignOut = async () => {
     try {
@@ -88,7 +90,7 @@ export default function Navbar() {
                   Favorites
                 </Link>
               )}
-              {user && (
+              {(isAdmin && !authLoading) && (
                 <Link
                   href="/admin"
                   className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:border-green-500 hover:text-gray-700"
@@ -195,7 +197,7 @@ export default function Navbar() {
                 Favorites
               </Link>
             )}
-            {user && (
+            {(isAdmin && !authLoading) && (
               <Link
                 href="/admin"
                 className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-green-500 hover:text-gray-800"

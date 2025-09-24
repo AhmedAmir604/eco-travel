@@ -13,6 +13,7 @@ import TestimonialSection from "../components/testimonial-section"
 import CitySearchInput from "../components/CitySearchInput"
 import { useToast } from "@/hooks/useToast"
 import ToastContainer from "@/components/ToastContainer"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function Home() {
   const { toasts, toast, removeToast } = useToast()
@@ -21,6 +22,7 @@ export default function Home() {
   const [travelers, setTravelers] = useState("1")
   const [checkInDate, setCheckInDate] = useState(null)
   const [checkOutDate, setCheckOutDate] = useState(null)
+  const { user } = useAuth();
 
   const handleSearch = () => {
     if (selectedDestination.trim()) {
@@ -248,7 +250,7 @@ export default function Home() {
       <TestimonialSection />
 
       {/* CTA Section */}
-      <section className="bg-green-700 text-white py-16 px-4">
+      {!user && (<section className="bg-green-700 text-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">Start Your Sustainable Journey Today</h2>
           <p className="text-lg mb-8">
@@ -261,7 +263,7 @@ export default function Home() {
             Sign Up for Free
           </Link>
         </div>
-      </section>
+      </section>)}
 
       {/* Toast Container */}
       <ToastContainer toasts={toasts} removeToast={removeToast} />

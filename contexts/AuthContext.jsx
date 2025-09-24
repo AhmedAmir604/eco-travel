@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
         setUser(session?.user ?? null)
         setLoading(false)
       }
@@ -69,10 +69,58 @@ export const AuthProvider = ({ children }) => {
   }
 
   const updatePassword = async (password) => {
-    const { data, error } = await supabase.auth.updateUser({
-      password
-    })
-    return { data, error }
+    try {
+      const response = await fetch('/api/profile/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newPassword: password }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        return { data: null, error: { message: result.error } }
+      }
+
+      return { data: result, error: null }
+    } catch (error) {
+      return { data: null, error: { message: 'Failed to update password' } }
+    }
+  }
+
+  const updateProfile = async (updates) => {
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        return { data: null, error: { message: result.error } }
+      }
+
+      console.log("resutl here ",result)
+
+      // Refresh the user session to get updated data
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+
+      return { data: result.data, error: null }
+    } catch (error) {
+      return { data: null, error: { message: 'Failed to update profile' } }
+    }
+  }
+
+  const updateEmail = async (email) => {
+    // This is now handled within updateProfile
+    return await updateProfile({ email })
   }
 
   const value = {
@@ -82,7 +130,9 @@ export const AuthProvider = ({ children }) => {
     signIn,
     signOut,
     resetPassword,
-    updatePassword
+    updatePassword,
+    updateProfile,
+    updateEmail
   }
 
   return (
