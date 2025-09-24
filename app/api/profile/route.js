@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
 export async function PUT(request) {
@@ -34,14 +35,18 @@ export async function PUT(request) {
       return NextResponse.json({ error: metadataError.message }, { status: 400 });
     }
 
-    // 2) If email changed, call updateUser({ email }) separately
+    // 2) If email changed, use admin client to update email
     let emailChanged = false;
     if (email && email !== user.email) {
-      const { error: emailError } = await supabase.auth.updateUser({ email });
+      const adminSupabase = createAdminClient();
+      const { error: emailError } = await adminSupabase.auth.admin.updateUserById(
+        user.id,
+        { email }
+      );
       if (emailError) {
         return NextResponse.json({ error: emailError.message }, { status: 400 });
       }
-      emailChanged = true; // may be pending confirmation
+      emailChanged = true;
     }
 
     // 3) Update your profiles row (avoid duplicating email to prevent drift)
