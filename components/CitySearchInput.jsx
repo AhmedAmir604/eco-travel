@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Search, MapPin, Loader2, X, ChevronDown } from 'lucide-react';
-import { useCitySearch } from '@/hooks/useCitySearch';
+import { useState, useRef, useEffect } from "react";
+import { Search, MapPin, Loader2, X, ChevronDown } from "lucide-react";
+import { useCitySearch } from "@/hooks/useCitySearch";
 
 export default function CitySearchInput({
   placeholder = "Search for a city...",
@@ -14,7 +14,7 @@ export default function CitySearchInput({
   disabled = false,
   inputClassName = "",
   dropdownClassName = "",
-  countryCode = null // Optional country filter (ISO 3166 Alpha-2 code)
+  countryCode = null, // Optional country filter (ISO 3166 Alpha-2 code)
 }) {
   const {
     query,
@@ -27,14 +27,12 @@ export default function CitySearchInput({
     setQuery,
     selectCity,
     clearSearch,
-    setIsOpen
+    setIsOpen,
   } = useCitySearch(300, countryCode);
 
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
-
-
 
   // Initialize with provided value
   useEffect(() => {
@@ -79,22 +77,22 @@ export default function CitySearchInput({
     const itemCount = suggestions.length;
 
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
-        setSelectedIndex(prev => prev < itemCount - 1 ? prev + 1 : prev);
+        setSelectedIndex((prev) => (prev < itemCount - 1 ? prev + 1 : prev));
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : prev);
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
         break;
-      case 'Enter':
+      case "Enter":
         if (selectedIndex >= 0 && suggestions[selectedIndex]) {
           e.preventDefault();
           handleCitySelect(suggestions[selectedIndex]);
         }
         // Don't prevent default if no suggestion is selected - let parent handle it
         break;
-      case 'Escape':
+      case "Escape":
         setIsOpen(false);
         setSelectedIndex(-1);
         inputRef.current?.blur();
@@ -118,8 +116,8 @@ export default function CitySearchInput({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Clear search
@@ -129,7 +127,7 @@ export default function CitySearchInput({
     inputRef.current?.focus();
 
     if (onInputChange) {
-      onInputChange('');
+      onInputChange("");
     }
   };
 
@@ -147,7 +145,10 @@ export default function CitySearchInput({
           onFocus={handleFocus}
           placeholder={placeholder}
           disabled={disabled}
-          className={inputClassName || "w-full pl-10 pr-12 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"}
+          className={
+            inputClassName ||
+            "w-full pl-10 pr-12 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+          }
           autoComplete="off"
           role="combobox"
           aria-expanded={isOpen}
@@ -156,11 +157,16 @@ export default function CitySearchInput({
         />
 
         {/* Search Icon */}
-        <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-600" />
+        <Search
+          size={18}
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-600"
+        />
 
         {/* Loading / Clear / Dropdown Icons */}
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center">
-          {loading && <Loader2 size={16} className="animate-spin text-gray-400 mr-1" />}
+          {loading && (
+            <Loader2 size={16} className="animate-spin text-gray-400 mr-1" />
+          )}
           {query && !loading && (
             <button
               onClick={handleClear}
@@ -173,14 +179,21 @@ export default function CitySearchInput({
           )}
           <ChevronDown
             size={16}
-            className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            className={`text-gray-400 transition-transform ${
+              isOpen ? "rotate-180" : ""
+            }`}
           />
         </div>
       </div>
 
       {/* Dropdown */}
       {isOpen && (
-        <div className={dropdownClassName || "absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-64 overflow-y-auto"}>
+        <div
+          className={
+            dropdownClassName ||
+            "absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-64 overflow-y-auto"
+          }
+        >
           {error && (
             <div className="px-4 py-3 text-sm text-red-600 bg-red-50 border-b border-red-100">
               <div className="flex items-center">
@@ -193,19 +206,19 @@ export default function CitySearchInput({
           {isFallback && fallbackReason && (
             <div className="px-4 py-3 text-xs bg-amber-50 text-amber-800 border-b border-amber-100">
               <div className="flex items-center">
-                {fallbackReason === 'rate_limited' && (
+                {fallbackReason === "rate_limited" && (
                   <>
                     <span className="mr-2">⚠️</span>
                     API rate limit reached - showing limited results
                   </>
                 )}
-                {fallbackReason === 'no_key' && (
+                {fallbackReason === "no_key" && (
                   <>
                     <span className="mr-2">ℹ️</span>
                     Demo mode - limited city suggestions available
                   </>
                 )}
-                {fallbackReason === 'api_unavailable' && (
+                {fallbackReason === "api_unavailable" && (
                   <>
                     <span className="mr-2">⚡</span>
                     Offline mode - showing cached results
@@ -215,25 +228,39 @@ export default function CitySearchInput({
             </div>
           )}
 
-          {displaySuggestions.length === 0 && !loading && !error && query.length >= 2 && (
-            <div className="px-4 py-8 text-center">
-              <MapPin size={24} className="mx-auto mb-3 text-gray-300" />
-              <div className="text-sm text-gray-500 mb-1">No cities found</div>
-              <div className="text-xs text-gray-400">Try a different search term</div>
-            </div>
-          )}
+          {displaySuggestions.length === 0 &&
+            !loading &&
+            !error &&
+            query.length >= 2 && (
+              <div className="px-4 py-8 text-center">
+                <MapPin size={24} className="mx-auto mb-3 text-gray-300" />
+                <div className="text-sm text-gray-500 mb-1">
+                  No cities found
+                </div>
+                <div className="text-xs text-gray-400">
+                  Try a different search term
+                </div>
+              </div>
+            )}
 
           {query.length < 2 && !loading && (
             <div className="px-4 py-8 text-center">
               <Search size={24} className="mx-auto mb-3 text-gray-300" />
-              <div className="text-sm text-gray-500 mb-1">Search for cities</div>
-              <div className="text-xs text-gray-400">Type at least 2 characters to begin</div>
+              <div className="text-sm text-gray-500 mb-1">
+                Search for cities
+              </div>
+              <div className="text-xs text-gray-400">
+                Type at least 2 characters to begin
+              </div>
             </div>
           )}
 
           {loading && (
             <div className="px-4 py-8 text-center">
-              <Loader2 size={24} className="mx-auto mb-3 text-emerald-500 animate-spin" />
+              <Loader2
+                size={24}
+                className="mx-auto mb-3 text-emerald-500 animate-spin"
+              />
               <div className="text-sm text-gray-500">Searching cities...</div>
             </div>
           )}
@@ -242,8 +269,15 @@ export default function CitySearchInput({
             <button
               key={city.id}
               onClick={() => handleCitySelect(city)}
-              className={`w-full px-4 py-3 text-left hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none transition-all duration-150 ${selectedIndex === index ? 'bg-emerald-50 text-emerald-700' : 'text-gray-900'
-                } ${index === displaySuggestions.length - 1 ? '' : 'border-b border-gray-100'}`}
+              className={`w-full px-4 py-3 z-50 text-left hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none transition-all duration-150 ${
+                selectedIndex === index
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "text-gray-900"
+              } ${
+                index === displaySuggestions.length - 1
+                  ? ""
+                  : "border-b border-gray-100"
+              }`}
               role="option"
               aria-selected={selectedIndex === index}
             >
@@ -252,8 +286,12 @@ export default function CitySearchInput({
                   <MapPin size={14} className="text-emerald-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-gray-900 truncate">{city.name}</div>
-                  <div className="text-sm text-gray-500 truncate">{city.country}</div>
+                  <div className="font-medium text-gray-900 truncate">
+                    {city.name}
+                  </div>
+                  <div className="text-sm text-gray-500 truncate">
+                    {city.country}
+                  </div>
                 </div>
                 {city.iataCode && (
                   <div className="flex-shrink-0 ml-3">
