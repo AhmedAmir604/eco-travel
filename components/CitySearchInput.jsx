@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Search, MapPin, Loader2, X, ChevronDown } from "lucide-react";
+import {
+  Search,
+  MapPin,
+  Loader2,
+  X,
+  ChevronDown,
+  MapPinned,
+  Navigation,
+} from "lucide-react";
 import { useCitySearch } from "@/hooks/useCitySearch";
 
 export default function CitySearchInput({
@@ -14,7 +22,8 @@ export default function CitySearchInput({
   disabled = false,
   inputClassName = "",
   dropdownClassName = "",
-  countryCode = null, // Optional country filter (ISO 3166 Alpha-2 code)
+  showRadiusSelector = true, // Show radius selector option
+  initialRadius = 5, // Default radius in km
 }) {
   const {
     query,
@@ -22,13 +31,19 @@ export default function CitySearchInput({
     loading,
     error,
     isOpen,
-    isFallback,
-    fallbackReason,
+    selectedCity,
+    userLocation,
+    locationPermission,
+    searchRadius,
+    showLocationPrompt,
     setQuery,
     selectCity,
     clearSearch,
     setIsOpen,
-  } = useCitySearch(300, countryCode);
+    setSearchRadius,
+    requestLocation,
+    dismissLocationPrompt,
+  } = useCitySearch(300, initialRadius);
 
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef(null);
@@ -42,13 +57,13 @@ export default function CitySearchInput({
   }, [initialValue]);
 
   // Handle city selection
-  const handleCitySelect = (city) => {
-    selectCity(city);
+  const handleCitySelect = async (city) => {
+    const cityWithCoords = await selectCity(city);
     setSelectedIndex(-1);
 
-    // Callback to parent component
+    // Callback to parent component with coordinates
     if (onCitySelect) {
-      onCitySelect(city);
+      onCitySelect(cityWithCoords);
     }
   };
 
@@ -135,6 +150,70 @@ export default function CitySearchInput({
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
+      {/* Location Prompt */}
+      {showLocationPrompt && (
+        <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start">
+            <Navigation
+              size={18}
+              className="text-blue-600 mt-0.5 mr-2 flex-shrink-0"
+            />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-900 mb-1">
+                Enable location for better results
+              </p>
+              <p className="text-xs text-blue-700 mb-2">
+                Get more accurate suggestions for places near you
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={requestLocation}
+                  className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  type="button"
+                >
+                  Enable Location
+                </button>
+                <button
+                  onClick={dismissLocationPrompt}
+                  className="text-xs px-3 py-1.5 bg-white text-blue-600 border border-blue-300 rounded hover:bg-blue-50 transition-colors"
+                  type="button"
+                >
+                  Maybe Later
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Radius Selector */}
+      {showRadiusSelector && userLocation && (
+        <div className="mb-2 flex items-center justify-between p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <div className="flex items-center">
+            <MapPinned size={14} className="text-emerald-600 mr-2" />
+            <span className="text-xs text-emerald-800 font-medium">
+              Search Radius:
+            </span>
+          </div>
+          <div className="flex gap-1">
+            {[10, 25, 50, 100, 200].map((radius) => (
+              <button
+                key={radius}
+                onClick={() => setSearchRadius(radius)}
+                className={`text-xs px-2 py-1 rounded transition-colors ${
+                  searchRadius === radius
+                    ? "bg-emerald-600 text-white"
+                    : "bg-white text-emerald-700 hover:bg-emerald-100"
+                }`}
+                type="button"
+              >
+                {radius}km
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="relative">
         <input
           ref={inputRef}
@@ -203,31 +282,6 @@ export default function CitySearchInput({
             </div>
           )}
 
-          {isFallback && fallbackReason && (
-            <div className="px-4 py-3 text-xs bg-amber-50 text-amber-800 border-b border-amber-100">
-              <div className="flex items-center">
-                {fallbackReason === "rate_limited" && (
-                  <>
-                    <span className="mr-2">⚠️</span>
-                    API rate limit reached - showing limited results
-                  </>
-                )}
-                {fallbackReason === "no_key" && (
-                  <>
-                    <span className="mr-2">ℹ️</span>
-                    Demo mode - limited city suggestions available
-                  </>
-                )}
-                {fallbackReason === "api_unavailable" && (
-                  <>
-                    <span className="mr-2">⚡</span>
-                    Offline mode - showing cached results
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
           {displaySuggestions.length === 0 &&
             !loading &&
             !error &&
@@ -289,17 +343,12 @@ export default function CitySearchInput({
                   <div className="font-medium text-gray-900 truncate">
                     {city.name}
                   </div>
-                  <div className="text-sm text-gray-500 truncate">
-                    {city.country}
-                  </div>
+                  {city.address && (
+                    <div className="text-sm text-gray-500 truncate">
+                      {city.address}
+                    </div>
+                  )}
                 </div>
-                {city.iataCode && (
-                  <div className="flex-shrink-0 ml-3">
-                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
-                      {city.iataCode}
-                    </span>
-                  </div>
-                )}
               </div>
             </button>
           ))}

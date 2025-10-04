@@ -77,11 +77,9 @@ export default function TransportList({
 
           return (
             <div
-              key={
-                transport.placeId ||
-                transport.id ||
-                `${transport.type}-${transport.name}`
-              }
+              key={`${transport.type}-${
+                transport.placeId || transport.id || transport.name
+              }`}
               className={`bg-white rounded-xl shadow-lg border-2 ${
                 isSelected
                   ? "border-red-500 ring-2 ring-red-200"

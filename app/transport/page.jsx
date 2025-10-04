@@ -32,6 +32,7 @@ export default function TransportPage() {
   const [selectedDestination, setSelectedDestination] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [location, setLocation] = useState("");
+  const [locationCoords, setLocationCoords] = useState(null); // Store coordinates to avoid geocoding
   const [summaryData, setSummaryData] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,7 +65,7 @@ export default function TransportPage() {
     performSearch();
   };
 
-  const performSearch = async () => {
+  const performSearch = async (coords = null) => {
     setLoading(true);
     setSummaryData(null);
     resetPagination(); // Reset to first page on new search
@@ -77,11 +78,20 @@ export default function TransportPage() {
           ? "discover"
           : "details";
 
+      // 🚀 Use passed coordinates OR stored coordinates OR location string
+      const locationData = coords
+        ? `${coords.latitude},${coords.longitude}`
+        : locationCoords
+        ? `${locationCoords.latitude},${locationCoords.longitude}`
+        : location.trim();
+
+      console.log("🔍 Searching with:", locationData);
+
       const response = await fetch("/api/transport-finder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          location: location.trim(),
+          location: locationData,
           type: requestType,
           transportType:
             selectedType &&
@@ -355,33 +365,42 @@ export default function TransportPage() {
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-8 mb-12">
           <div className="max-w-4xl mx-auto">
             {/* Main Search */}
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex flex-col items-center md:flex-row gap-4 mb-6">
               <div className="flex-1 relative">
                 <CitySearchInput
                   placeholder="Enter location (e.g., Manhattan, NYC, London, Paris)..."
                   initialValue={location}
                   onCitySelect={(city) => {
-                    // Extract the best location name for transport search
-                    const cityName =
-                      city.name || city.displayName?.split(",")[0] || "";
                     const locationString = city.displayName || city.name || "";
-
                     setLocation(locationString);
 
-                    // Show success notification
+                    // Extract coordinates if available
+                    const coords =
+                      city.latitude && city.longitude
+                        ? { latitude: city.latitude, longitude: city.longitude }
+                        : null;
+
+                    if (coords) {
+                      setLocationCoords(coords);
+                      console.log(
+                        `✓ Using coordinates: ${coords.latitude},${coords.longitude}`
+                      );
+                    } else {
+                      setLocationCoords(null);
+                    }
+
                     toast.success(`Selected: ${city.displayName}`);
 
-                    // Auto-discover transport when city is selected
+                    // Auto-search with the coordinates immediately
                     if (locationString) {
-                      // Clear any existing timer
                       if (debounceTimer) {
                         clearTimeout(debounceTimer);
                         setDebounceTimer(null);
                       }
-                      // Trigger immediate search
+                      // Pass coordinates directly to avoid state update delay
                       setTimeout(() => {
-                        discoverAreaTransport(true);
-                      }, 100); // Small delay to ensure UI updates
+                        performSearch(coords);
+                      }, 100);
                     }
                   }}
                   onInputChange={(value) => {
@@ -405,7 +424,7 @@ export default function TransportPage() {
               <button
                 onClick={() => discoverAreaTransport(true)}
                 disabled={loading}
-                className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl hover:from-emerald-700 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 font-medium shadow-lg"
+                className="px-8 py-4 max-h-[3rem] bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl hover:from-emerald-700 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 font-medium shadow-lg"
               >
                 {loading ? (
                   <>
