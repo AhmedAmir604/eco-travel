@@ -330,9 +330,9 @@ export default function DestinationsPage() {
                       <span className="text-sm">{item.location}</span>
                     </div>
 
-                    <p className="text-gray-700 mb-4 line-clamp-3 leading-relaxed">
+                    {/* <p className="text-gray-700 mb-4 line-clamp-3 leading-relaxed">
                       {item.description}
-                    </p>
+                    </p> */}
 
                     {/* Tags */}
                     {item.tags && item.tags.length > 0 && (

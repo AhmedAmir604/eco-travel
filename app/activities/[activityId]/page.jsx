@@ -12,46 +12,15 @@ import {
   Loader2,
 } from "lucide-react";
 import { useToast } from "@/contexts/ToastContext";
-import { useGoogleMaps } from "@/hooks/useGoogleMaps";
 
 export default function ActivityDetailPage({ params }) {
   const { toast } = useToast();
   const [activity, setActivity] = useState(null);
   const [loading, setLoading] = useState(true);
-  const mapRef = useRef(null);
-  const { mapLoaded, initializeMap } = useGoogleMaps();
 
   useEffect(() => {
     loadActivityDetails();
   }, [params.activityId]);
-
-  useEffect(() => {
-    if (mapLoaded && activity?.coordinates && mapRef.current) {
-      const center = {
-        lat: activity.coordinates.latitude,
-        lng: activity.coordinates.longitude,
-      };
-
-      const { map } = initializeMap(mapRef.current, center);
-
-      // Add marker for activity location
-      if (window.google && map) {
-        new window.google.maps.Marker({
-          position: center,
-          map: map,
-          title: activity.name,
-          icon: {
-            path: window.google.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: "#10b981",
-            fillOpacity: 1,
-            strokeColor: "#ffffff",
-            strokeWeight: 2,
-          },
-        });
-      }
-    }
-  }, [mapLoaded, activity, initializeMap]);
 
   const loadActivityDetails = async () => {
     try {
@@ -196,31 +165,6 @@ export default function ActivityDetailPage({ params }) {
                         {activity.duration}
                       </div>
                     </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Location Map */}
-              {activity.coordinates && (
-                <div className="mb-6">
-                  <h3 className="text-xl font-semibold mb-3">Location</h3>
-                  <div
-                    ref={mapRef}
-                    className="w-full h-64 rounded-lg border border-gray-200 bg-gray-100"
-                  >
-                    {!mapLoaded && (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Loader2
-                          size={24}
-                          className="animate-spin text-green-600"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-2 text-sm text-gray-600">
-                    <MapPin size={14} className="inline mr-1" />
-                    Latitude: {activity.coordinates.latitude.toFixed(6)},
-                    Longitude: {activity.coordinates.longitude.toFixed(6)}
                   </div>
                 </div>
               )}
