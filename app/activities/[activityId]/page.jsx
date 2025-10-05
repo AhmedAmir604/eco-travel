@@ -181,7 +181,7 @@ export default function ActivityDetailPage({ params }) {
             {/* Main Content */}
             <div className="flex-1">
               <h2 className="text-2xl font-bold mb-4">About This Activity</h2>
-              <p className="text-gray-700 mb-6">{activity.description}</p>
+              {/* <p className="text-gray-700 mb-6">{activity.description}</p> */}
 
               {activity.longDescription &&
                 activity.longDescription !== activity.description && (
@@ -190,7 +190,7 @@ export default function ActivityDetailPage({ params }) {
                       Detailed Description
                     </h3>
                     <p className="text-gray-700 whitespace-pre-wrap">
-                      {activity.longDescription.replace(/<[^>]*>/g, '')}
+                      {activity.longDescription.replace(/<[^>]*>/g, "")}
                     </p>
                   </div>
                 )}
@@ -217,7 +217,7 @@ export default function ActivityDetailPage({ params }) {
                   <div
                     ref={mapRef}
                     className="w-full h-64 rounded-lg border border-gray-200 bg-gray-100"
-                    style={{ minHeight: '256px' }}
+                    style={{ minHeight: "256px" }}
                   >
                     {!mapLoaded && (
                       <div className="w-full h-full flex items-center justify-center">

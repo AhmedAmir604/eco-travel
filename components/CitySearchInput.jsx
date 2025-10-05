@@ -187,7 +187,7 @@ export default function CitySearchInput({
       )}
 
       {/* Radius Selector */}
-      {showRadiusSelector && userLocation && (
+      {/* {showRadiusSelector && userLocation && (
         <div className="mb-2 flex items-center justify-between p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
           <div className="flex items-center">
             <MapPinned size={14} className="text-emerald-600 mr-2" />
@@ -212,7 +212,7 @@ export default function CitySearchInput({
             ))}
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="relative">
         <input

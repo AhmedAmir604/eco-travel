@@ -150,7 +150,7 @@ export default function AccommodationsPage() {
                 className="w-full"
               />
             </div>
-            {/* <select
+            <select
               value={searchRadius}
               onChange={(e) => setSearchRadius(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -160,7 +160,7 @@ export default function AccommodationsPage() {
               <option value="25">25 km radius</option>
               <option value="50">50 km radius</option>
               <option value="100">100 km radius</option>
-            </select> */}
+            </select>
             <button
               type="submit"
               disabled={loading || !searchCity.trim()}
