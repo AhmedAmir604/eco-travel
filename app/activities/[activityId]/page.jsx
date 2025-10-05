@@ -12,15 +12,59 @@ import {
   Loader2,
 } from "lucide-react";
 import { useToast } from "@/contexts/ToastContext";
+import { useGoogleMaps } from "@/hooks/useGoogleMaps";
 
 export default function ActivityDetailPage({ params }) {
   const { toast } = useToast();
   const [activity, setActivity] = useState(null);
   const [loading, setLoading] = useState(true);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+  const { mapLoaded, initializeMap } = useGoogleMaps();
 
   useEffect(() => {
     loadActivityDetails();
   }, [params.activityId]);
+
+  useEffect(() => {
+    if (mapLoaded && activity?.coordinates && mapRef.current) {
+      // Cleanup previous marker
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+      }
+
+      const center = {
+        lat: activity.coordinates.latitude,
+        lng: activity.coordinates.longitude,
+      };
+
+      const { map } = initializeMap(mapRef.current, center);
+
+      // Add marker for activity location
+      if (window.google && map) {
+        markerRef.current = new window.google.maps.Marker({
+          position: center,
+          map: map,
+          title: activity.name,
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: "#10b981",
+            fillOpacity: 1,
+            strokeColor: "#ffffff",
+            strokeWeight: 2,
+          },
+        });
+      }
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+      }
+    };
+  }, [mapLoaded, activity]);
 
   const loadActivityDetails = async () => {
     try {
@@ -145,12 +189,9 @@ export default function ActivityDetailPage({ params }) {
                     <h3 className="text-xl font-semibold mb-3">
                       Detailed Description
                     </h3>
-                    <div
-                      className="prose max-w-none"
-                      dangerouslySetInnerHTML={{
-                        __html: activity.longDescription,
-                      }}
-                    />
+                    <p className="text-gray-700 whitespace-pre-wrap">
+                      {activity.longDescription.replace(/<[^>]*>/g, '')}
+                    </p>
                   </div>
                 )}
 
@@ -165,6 +206,31 @@ export default function ActivityDetailPage({ params }) {
                         {activity.duration}
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Location Map */}
+              {activity.coordinates && (
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold mb-3">Location</h3>
+                  <div
+                    ref={mapRef}
+                    className="w-full h-64 rounded-lg border border-gray-200 bg-gray-100"
+                    style={{ minHeight: '256px' }}
+                  >
+                    {!mapLoaded && (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Loader2
+                          size={24}
+                          className="animate-spin text-green-600"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-2 text-sm text-gray-600">
+                    <MapPin size={14} className="inline mr-1" />
+                    {activity.location}
                   </div>
                 </div>
               )}
