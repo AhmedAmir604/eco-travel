@@ -144,11 +144,11 @@ export default function FeaturedDestinations() {
                     </div>
 
                     {/* Real Data Indicator */}
-                    {activity.isRealData && (
+                    {/* {activity.isRealData && (
                       <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
                         Live Data
                       </div>
-                    )}
+                    )} */}
                   </div>
 
                   <div className="p-4">
