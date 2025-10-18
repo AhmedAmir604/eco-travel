@@ -473,52 +473,97 @@ export default function ItineraryPage() {
         )}
 
         {/* Daily Itinerary Tab */}
-        {activeTab === "itinerary" && itinerary.days && (
+        {activeTab === "itinerary" && (
           <div className="space-y-8">
             <h2 className="text-2xl font-bold text-gray-900">
               Daily Itinerary
             </h2>
-            <div className="space-y-8">
-              {itinerary.days.map((day) => (
-                <div
-                  key={day.day}
-                  className="bg-white rounded-xl shadow-sm overflow-hidden"
-                >
-                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-8 py-6 border-b border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-2xl font-bold text-gray-900">
-                          Day {day.day}: {day.theme}
-                        </h3>
-                        <p className="text-gray-600 mt-1">{day.date}</p>
+
+            {/* Debug Info - Remove after testing */}
+            {!itinerary.days && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-yellow-800">
+                  No itinerary days found. Please generate a new itinerary.
+                </p>
+              </div>
+            )}
+
+            {itinerary.days && itinerary.days.length === 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-yellow-800">
+                  Itinerary days array is empty.
+                </p>
+              </div>
+            )}
+
+            {itinerary.days && itinerary.days.length > 0 && (
+              <div className="space-y-8">
+                {itinerary.days.map((day, dayIndex) => {
+                  if (!day) {
+                    return (
+                      <div
+                        key={dayIndex}
+                        className="bg-red-50 border border-red-200 rounded-lg p-4"
+                      >
+                        <p className="text-red-800">
+                          Day {dayIndex + 1}: Invalid day data
+                        </p>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <div className="bg-emerald-100 px-4 py-2 rounded-full">
-                          <span className="text-emerald-700 font-semibold">
-                            Eco Score: {day.sustainabilityScore}/5
-                          </span>
+                    );
+                  }
+
+                  return (
+                    <div
+                      key={day.day || dayIndex}
+                      className="bg-white rounded-xl shadow-sm overflow-hidden"
+                    >
+                      <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-8 py-6 border-b border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-2xl font-bold text-gray-900">
+                              Day {day.day}: {day.theme || "Daily Activities"}
+                            </h3>
+                            <p className="text-gray-600 mt-1">
+                              {day.date || ""}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="bg-emerald-100 px-4 py-2 rounded-full">
+                              <span className="text-emerald-700 font-semibold">
+                                Eco Score: {day.sustainabilityScore || 0}/5
+                              </span>
+                            </div>
+                            <div className="bg-blue-100 px-4 py-2 rounded-full">
+                              <span className="text-blue-700 font-semibold">
+                                {day.activities?.length || 0} activities
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="bg-blue-100 px-4 py-2 rounded-full">
-                          <span className="text-blue-700 font-semibold">
-                            {day.activities?.length || 0} activities
-                          </span>
-                        </div>
+                      </div>
+                      <div className="p-8 space-y-6">
+                        {day.activities && day.activities.length > 0 ? (
+                          day.activities.map((activity, idx) => (
+                            <ActivityCard
+                              key={activity.id || idx}
+                              activity={activity}
+                              index={idx}
+                              onViewDetails={setSelectedActivity}
+                            />
+                          ))
+                        ) : (
+                          <div className="bg-gray-50 rounded-lg p-6 text-center">
+                            <p className="text-gray-600">
+                              No activities scheduled for this day.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                  <div className="p-8 space-y-6">
-                    {day.activities.map((activity, idx) => (
-                      <ActivityCard
-                        key={idx}
-                        activity={activity}
-                        index={idx}
-                        onViewDetails={setSelectedActivity}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
